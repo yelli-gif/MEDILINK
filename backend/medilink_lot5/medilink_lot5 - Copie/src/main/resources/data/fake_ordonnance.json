@@ -1,0 +1,46 @@
+{
+  "patientId": 1,
+  "ordonnance": {
+    "id": "ORD-2026-TEST-BLOC9",
+    "dateCreation": "2026-01-20T10:00:00",
+    "dateDebutTraitement": "2026-01-21T08:00:00",
+    "ligne": [
+      {
+        "medicament": { "nom": "Doliprane", "forme": "Comprimé" },
+        "posologie": "1000mg",
+        "frequence": "1x/jour",
+        "dureeTraitement": "5 jours",
+        "quantite": 5,
+        "estDisponible": true,
+        "prise": [
+          { "id": 101, "dateHeurePrevue": "2026-01-27T08:00:00", "statut": "A_PRENDRE" }
+        ]
+      },
+      {
+        "medicament": { "nom": "Amoxicilline", "forme": "Gélule" },
+        "posologie": "500mg",
+        "frequence": "2x/jour",
+        "dureeTraitement": "7 jours",
+        "quantite": 14,
+        "estDisponible": true,
+        "prises": [
+          { "id": 201, "dateHeurePrevue": "2026-01-27T08:00:00", "statut": "A_PRENDRE" },
+          { "id": 202, "dateHeurePrevue": "2026-01-27T20:00:00", "statut": "A_PRENDRE" }
+        ]
+      },
+      {
+        "medicament": { "nom": "Spasfon", "forme": "Lyoc" },
+        "posologie": "80mg",
+        "frequence": "3x/jour",
+        "dureeTraitement": "3 jours",
+        "quantite": 9,
+        "estDisponible": true,
+        "prises": [
+          { "id": 301, "dateHeurePrevue": "2026-01-27T08:00:00", "statut": "A_PRENDRE" },
+          { "id": 302, "dateHeurePrevue": "2026-01-27T13:00:00", "statut": "A_PRENDRE" },
+          { "id": 303, "dateHeurePrevue": "2026-01-27T20:00:00", "statut": "A_PRENDRE" }
+        ]
+      }
+    ]
+  }
+}
