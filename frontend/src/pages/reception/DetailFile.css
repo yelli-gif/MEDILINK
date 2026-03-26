@@ -195,6 +195,10 @@ body { font-family: 'Inter', system-ui, sans-serif; }
 .patient-card__num {
   font-size: 32px; font-weight: 800; color: #bfdbfe;
   width: 44px; flex-shrink: 0; text-align: center;
+  transition: color 0.2s;
+}
+.patient-card:hover .patient-card__num {
+  color: #2563eb;
 }
 .patient-card__avatar {
   width: 52px; height: 52px; border-radius: 50%;
