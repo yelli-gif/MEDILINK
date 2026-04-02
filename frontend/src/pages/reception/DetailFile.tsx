@@ -2,7 +2,21 @@ import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import './DetailFile.css'
 
-// ── Icons ──────────────────────────────────────────────────────────────────────
+const IconSearch = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+  </svg>
+)
+
+const IconSupport = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="4" />
+    <line x1="4.93" y1="4.93" x2="9.17" y2="9.17" /><line x1="14.83" y1="14.83" x2="19.07" y2="19.07" />
+    <line x1="14.83" y1="9.17" x2="19.07" y2="4.93" /><line x1="4.93" y1="19.07" x2="9.17" y2="14.83" />
+  </svg>
+)
+
+// ── Icônes ───────────────────────────────────────────────────────────────────
 const IconDashboard = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" />
@@ -44,11 +58,7 @@ const IconHelp = () => (
     <circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><line x1="12" y1="17" x2="12.01" y2="17" />
   </svg>
 )
-const IconSearch = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-  </svg>
-)
+// -- Unused IconSearch removed --
 const IconChevron = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="9 18 15 12 9 6" />
@@ -85,7 +95,7 @@ const IconInfo = () => (
 )
 const IconCheckTask = () => (
   <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="9 11 12 14 22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+    <polyline points="9 11 12 14 22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2 2V5a2 2 0 0 1 2-2h11" />
   </svg>
 )
 const IconShuffle = () => (
@@ -119,10 +129,10 @@ type ServiceData = {
   patients: Patient[]
 }
 
-// ── Mock data (remplacé par API en production) ─────────────────────────────────
+// ── Données Mock ─────────────────────────────────────────────────────────────
 const serviceDatabase: Record<string, ServiceData> = {
   '1': {
-    name: 'Cardiologie', avgWait: '24m',
+    name: 'Cardiologie', avgWait: '24 min',
     patients: [
       { id: 'p1', name: 'Geneviève Martin', priority: 'urgent', arrival: '08:45', reason: 'Contrôle post-opératoire', avatar: 'https://randomuser.me/api/portraits/women/68.jpg' },
       { id: 'p2', name: 'Marc-Antoine Lefebvre', priority: 'regulier', arrival: '09:12', reason: "ECG d'effort", avatar: 'https://randomuser.me/api/portraits/men/32.jpg' },
@@ -184,13 +194,12 @@ const navItems = [
   { id: 'history', label: 'Historique', icon: <IconHistory /> },
 ]
 
-// ── Component ──────────────────────────────────────────────────────────────────
+// ── Composant Principal ───────────────────────────────────────────────────────
 export default function DetailFile() {
   const { serviceId } = useParams<{ serviceId: string }>()
   const navigate = useNavigate()
-  const [, setActiveNav] = useState('waiting-queues')
-
-  // Look up service — fallback to '1' (Cardiologie) if not found so there are always mock patients
+  
+  // Look up service — fallback to '1' (Cardiologie)
   const serviceKey = serviceId && serviceDatabase[serviceId] ? serviceId : '1'
   const service = serviceDatabase[serviceKey]
 
@@ -201,16 +210,16 @@ export default function DetailFile() {
   }
 
   const handleNav = (id: string) => {
-    setActiveNav(id)
     if (id === 'dashboard') navigate('/dashboard')
     if (id === 'new-requests') navigate('/requests')
     if (id === 'waiting-queues') navigate('/waiting-queues')
     if (id === 'ticket-verification') navigate('/ticket-verification')
+    if (id === 'history') navigate('/history')
   }
 
   return (
     <div className="app-shell">
-      {/* ── Sidebar ── */}
+      {/* ── Barre Latérale ── */}
       <aside className="sidebar">
         <div className="sidebar__brand">
           <div className="brand-logo">
@@ -238,25 +247,37 @@ export default function DetailFile() {
         </nav>
 
         <div className="sidebar__emergency">
-          <button className="btn-emergency">Admission Urgente</button>
+          <button className="btn-emergency" onClick={() => navigate('/emergency-intake')}>
+            Admission Urgente
+          </button>
         </div>
 
         <div className="sidebar__footer">
-          <button className="footer-link"><IconSettings /> Paramètres</button>
+          <div className="sidebar__footer-box">
+            <button className="footer-link">
+              <IconSettings /> <span>Paramètres</span>
+            </button>
+            <button className="footer-link">
+              <IconSupport /> <span>Assistance</span>
+            </button>
+          </div>
         </div>
       </aside>
 
-      {/* ── Main ── */}
+      {/* ── Contenu Principal ── */}
       <main className="main-content">
         {/* Topbar */}
         <header className="topbar">
-          <div className="topbar__left">
-            <div className="topbar__search">
-              <IconSearch />
-              <input type="text" placeholder="Rechercher un patient..." />
-            </div>
-            <span className="topbar__date">October 24, 2023</span>
+          <div className="topbar__date">24 octobre 2023</div>
+
+          <div className="topbar__search">
+            <IconSearch />
+            <input
+              type="text"
+              placeholder="Rechercher un patient ou un service..."
+            />
           </div>
+
           <div className="topbar__actions">
             <button className="icon-btn" aria-label="Notifications">
               <IconBell /><span className="notif-dot" />
@@ -265,17 +286,15 @@ export default function DetailFile() {
             <div className="topbar__divider" />
             <div className="topbar__user">
               <div className="topbar__user-info">
-                <span className="user-name">Dr. Claire Durand</span>
-                <span className="user-role">Service {service.name}</span>
+                <span className="user-name">Jean Dupont</span>
+                <span className="user-role">Réceptionniste</span>
               </div>
-              <div className="user-avatar-img">
-                <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Dr. Claire Durand" />
-              </div>
+              <div className="user-avatar">JD</div>
             </div>
           </div>
         </header>
 
-        {/* Page body */}
+        {/* Corps de la page */}
         <div className="page-body">
           {/* Breadcrumb */}
           <nav className="breadcrumb">
@@ -322,7 +341,7 @@ export default function DetailFile() {
             </div>
           </div>
 
-          {/* Queue list */}
+          {/* Liste de la file */}
           <div className="queue-section">
             <div className="queue-section__header">
               <div className="queue-title-group">
@@ -377,14 +396,14 @@ export default function DetailFile() {
               </div>
             )}
 
-            {/* Auto-update notice */}
+            {/* Information mise à jour */}
             <div className="queue-notice">
               <IconInfo />
               <span>Mise à jour automatique : les patients en consultation disparaissent de cette liste.</span>
             </div>
           </div>
 
-          {/* Action cards */}
+          {/* Cartes d'action */}
           <div className="action-cards">
             <div className="action-card">
               <div className="action-card__icon"><IconCheckTask /></div>
@@ -402,7 +421,7 @@ export default function DetailFile() {
               <div className="action-card__icon"><IconBarChart /></div>
               <h3 className="action-card__title">Rapport du jour</h3>
               <p className="action-card__desc">Consulter les statistiques de passage et d'attente.</p>
-              <button className="action-card__link">Voir les datas</button>
+              <button className="action-card__link">Voir les statistiques</button>
             </div>
           </div>
         </div>

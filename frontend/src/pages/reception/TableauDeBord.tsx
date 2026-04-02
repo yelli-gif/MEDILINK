@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './TableauDeBord.css'
 
-// ── Icons (inline SVG helpers) ────────────────────────────────────────────────
+// ── Icônes (inline SVG helpers) ────────────────────────────────────────────────
 
 const IconDashboard = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -67,7 +67,7 @@ const IconRefresh = () => (
   </svg>
 )
 
-// ── Data types ────────────────────────────────────────────────────────────────
+// ── Types de données ──────────────────────────────────────────────────────────
 
 type NavItem = { id: string; label: string; icon: React.ReactNode }
 type Patient = {
@@ -82,7 +82,7 @@ type Patient = {
   avatar?: string
 }
 
-// ── Static data ───────────────────────────────────────────────────────────────
+// ── Données statiques ─────────────────────────────────────────────────────────
 
 const navItems: NavItem[] = [
   { id: 'dashboard', label: 'Tableau de bord', icon: <IconDashboard /> },
@@ -145,7 +145,7 @@ const statusLabel: Record<Patient['status'], string> = {
   completed: 'Terminé',
 }
 
-// ── Sub-components ────────────────────────────────────────────────────────────
+// ── Sous-composants ───────────────────────────────────────────────────────────
 
 function StatCard({
   icon, iconBg, value, label, badge,
@@ -194,12 +194,23 @@ function PatientRow({ patient }: { patient: Patient }) {
   )
 }
 
-// ── Main component ────────────────────────────────────────────────────────────
+// ── Composant Principal ───────────────────────────────────────────────────────
 
 export default function Dashboard() {
   const [activeNav, setActiveNav] = useState('dashboard')
   const [search, setSearch] = useState('')
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [lastUpdated, setLastUpdated] = useState('il y a 2 min')
   const navigate = useNavigate()
+
+  const handleRefresh = () => {
+    setIsRefreshing(true)
+    // Simulation d'un délai réseau
+    setTimeout(() => {
+      setIsRefreshing(false)
+      setLastUpdated('À l\'instant')
+    }, 1200)
+  }
 
   const handleNav = (id: string) => {
     setActiveNav(id)
@@ -207,6 +218,7 @@ export default function Dashboard() {
     if (id === 'new-requests') navigate('/requests')
     if (id === 'waiting-queues') navigate('/waiting-queues')
     if (id === 'ticket-verification') navigate('/ticket-verification')
+    if (id === 'history') navigate('/history')
   }
 
   const filtered = patients.filter(
@@ -218,7 +230,7 @@ export default function Dashboard() {
 
   return (
     <div className="app-shell">
-      {/* ── Sidebar ── */}
+      {/* ── Barre Latérale ── */}
       <aside className="sidebar">
         <div className="sidebar__brand">
           <div className="brand-logo">
@@ -246,24 +258,39 @@ export default function Dashboard() {
         </nav>
 
         <div className="sidebar__emergency">
-          <button className="btn-emergency">Admission Urgente</button>
+          <button className="hi-btn-emergency" onClick={() => navigate('/emergency-intake')}>
+            Admission Urgente
+          </button>
         </div>
 
         <div className="sidebar__footer">
-          <button className="footer-link">
-            <IconSettings /> Paramètres
-          </button>
-          <button className="footer-link">
-            <IconSupport /> Assistance
-          </button>
+          <div className="sidebar__footer-box">
+            <button className="footer-link">
+              <IconSettings /> <span>Paramètres</span>
+            </button>
+            <button className="footer-link">
+              <IconSupport /> <span>Assistance</span>
+            </button>
+          </div>
         </div>
       </aside>
 
-      {/* ── Main content ── */}
+      {/* ── Contenu Principal ── */}
       <main className="main-content">
         {/* Topbar */}
         <header className="topbar">
-          <div className="topbar__date">October 24, 2023</div>
+          <div className="topbar__date">24 octobre 2023</div>
+
+          <div className="topbar__search">
+            <IconSearch />
+            <input
+              type="text"
+              placeholder="Rechercher un patient, médecin ou service..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+
           <div className="topbar__actions">
             <button className="icon-btn" aria-label="Notifications"><IconBell /></button>
             <button className="icon-btn" aria-label="Aide"><IconHelp /></button>
@@ -278,17 +305,17 @@ export default function Dashboard() {
           </div>
         </header>
 
-        {/* Page body */}
+        {/* Corps de la page */}
         <div className="page-body">
-          {/* Page title */}
+          {/* Titre de la page */}
           <div className="page-title-block">
-            <h1 className="page-title">Dashboard</h1>
+            <h1 className="page-title">Tableau de bord</h1>
             <p className="page-subtitle">
               Bienvenue sur votre station d'accueil. Gérez les flux de patients et les priorités en temps réel.
             </p>
           </div>
 
-          {/* Stat cards */}
+          {/* Cartes Stats */}
           <div className="stats-grid">
             <StatCard
               icon={
@@ -333,7 +360,7 @@ export default function Dashboard() {
             />
           </div>
 
-          {/* Appointments table */}
+          {/* Tableau des rendez-vous */}
           <section className="appointments-section">
             <div className="appointments-header">
               <div>
@@ -341,16 +368,7 @@ export default function Dashboard() {
                 <p className="appointments-subtitle">Flux de patients pour la matinée du 24 octobre</p>
               </div>
               <div className="appointments-controls">
-                <div className="search-box">
-                  <IconSearch />
-                  <input
-                    type="text"
-                    placeholder="Rechercher un patient..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                  />
-                </div>
-                <button className="icon-btn icon-btn--border"><IconFilter /></button>
+                <button className="icon-btn icon-btn--border" aria-label="Filtrer"><IconFilter /></button>
               </div>
             </div>
 
@@ -372,7 +390,7 @@ export default function Dashboard() {
               </table>
             </div>
 
-            {/* Footer bar */}
+            {/* Barre de footer */}
             <div className="table-footer">
               <div className="table-footer__stats">
                 <div className="stat-item"><span className="dot dot--blue" /> EN ROUTE : <strong>18</strong></div>
@@ -380,9 +398,13 @@ export default function Dashboard() {
                 <div className="stat-item"><span className="dot dot--purple" /> EN CONSULTATION : <strong>09</strong></div>
               </div>
               <div className="table-footer__update">
-                <span className="update-time">Dernière mise à jour : il y a 2 min</span>
-                <button className="btn-refresh">
-                  <IconRefresh /> Actualiser
+                <span className="update-time">Dernière mise à jour : {lastUpdated}</span>
+                <button 
+                  className={`btn-refresh ${isRefreshing ? 'btn-refresh--loading' : ''}`}
+                  onClick={handleRefresh}
+                  disabled={isRefreshing}
+                >
+                  <IconRefresh /> {isRefreshing ? 'Mise à jour...' : 'Actualiser'}
                 </button>
               </div>
             </div>

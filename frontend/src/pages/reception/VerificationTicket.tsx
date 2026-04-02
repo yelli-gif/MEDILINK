@@ -2,7 +2,15 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './VerificationTicket.css'
 
-// ── Icons ─────────────────────────────────────────────────────────────────────
+import './VerificationTicket.css'
+
+const IconSearch = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+  </svg>
+)
+
+// ── Icônes ─────────────────────────────────────────────────────────────────────
 
 const IconDashboard = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -42,11 +50,7 @@ const IconSupport = () => (
     <line x1="14.83" y1="9.17" x2="19.07" y2="4.93" /><line x1="4.93" y1="19.07" x2="9.17" y2="14.83" />
   </svg>
 )
-const IconCalendar = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
-  </svg>
-)
+// -- Unused IconCalendar removed --
 const IconBell = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" />
@@ -76,7 +80,7 @@ const IconShieldLock = () => (
   </svg>
 )
 
-// ── Data ───────────────────────────────────────────────────────────────────────
+// ── Données ───────────────────────────────────────────────────────────────────
 
 const navItems = [
   { id: 'dashboard', label: 'Tableau de bord', icon: <IconDashboard /> },
@@ -129,7 +133,7 @@ const mockTickets = [
 export default function VerificationTicket() {
   const [activeNav, setActiveNav] = useState('ticket-verification')
   const navigate = useNavigate()
-  
+
   // Par défaut, on remplit un code pour que ce soit facile à tester visuellement
   const [ticketCode, setTicketCode] = useState('TKT-8821-ABCD')
   const [searchedTicket, setSearchedTicket] = useState<typeof mockTickets[0] | null>(null)
@@ -141,6 +145,7 @@ export default function VerificationTicket() {
     if (id === 'new-requests') navigate('/requests')
     if (id === 'waiting-queues') navigate('/waiting-queues')
     if (id === 'ticket-verification') navigate('/ticket-verification')
+    if (id === 'history') navigate('/history')
   }
 
   const handleVerify = () => {
@@ -162,7 +167,7 @@ export default function VerificationTicket() {
 
   return (
     <div className="app-shell">
-      {/* ── Sidebar (Utilisation stricte du composant de la charte graphique globale) ── */}
+      {/* ── Barre Latérale ── */}
       <aside className="sidebar">
         <div className="sidebar__brand">
           <div className="brand-logo">
@@ -190,44 +195,60 @@ export default function VerificationTicket() {
         </nav>
 
         <div className="sidebar__emergency">
-          <button className="btn-emergency">Admission Urgente</button>
+          <button className="btn-emergency" onClick={() => navigate('/emergency-intake')}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+              <line x1="7.05" y1="7.05" x2="16.95" y2="16.95" /><line x1="16.95" y1="7.05" x2="7.05" y2="16.95" />
+            </svg>
+            Admission Urgente
+          </button>
         </div>
 
         <div className="sidebar__footer">
-          <button className="footer-link">
-            <IconSettings /> Paramètres
-          </button>
-          <button className="footer-link">
-            <IconSupport /> Assistance
-          </button>
+          <div className="sidebar__footer-box">
+            <button className="footer-link">
+              <IconSettings /> <span>Paramètres</span>
+            </button>
+            <button className="footer-link">
+              <IconSupport /> <span>Assistance</span>
+            </button>
+          </div>
         </div>
       </aside>
 
-      {/* ── Main (Contenu Vérification Ticket traduit en français) ── */}
+      {/* ── Contenu Principal ── */}
       <main className="vt-main">
         {/* Topbar */}
         <header className="vt-topbar">
-          <div className="vt-topbar__date">
-             <IconCalendar /> 24 octobre 2023
+          <div className="vt-topbar__date">24 octobre 2023</div>
+
+          <div className="vt-topbar__search">
+            <IconSearch />
+            <input
+              type="text"
+              placeholder="Rechercher un patient ou un ticket..."
+            />
           </div>
+
           <div className="vt-topbar__actions">
             <button className="vt-icon-btn"><IconBell /></button>
             <button className="vt-icon-btn"><IconHelp /></button>
-            <div className="vt-user-avatar">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
-              </svg>
+            <div className="topbar__divider" />
+            <div className="hi-user-info">
+              <span className="user-name">Jean Dupont</span>
+              <span className="user-role">Réceptionniste</span>
             </div>
+            <div className="hi-user-avatar">JD</div>
           </div>
         </header>
 
-        {/* Page body */}
+        {/* Corps de la page */}
         <div className="vt-page-body">
-          
+
           <div className="vt-header">
             <h1 className="vt-title">Vérification <span className="vt-title-hl">Ticket</span></h1>
             <p className="vt-subtitle">
-              Entrez le code d'identification unique pour valider l'authenticité du ticket<br/>et accéder aux dossiers partagés.
+              Entrez le code d'identification unique pour valider l'authenticité du ticket<br />et accéder aux dossiers partagés.
             </p>
           </div>
 
@@ -244,20 +265,20 @@ export default function VerificationTicket() {
                 onKeyDown={(e) => { if (e.key === 'Enter') handleVerify() }}
               />
             </div>
-            
+
             <button className="vt-btn" onClick={handleVerify}>
               <IconShieldCheck /> Vérifier l'authenticité
             </button>
-            
-            {/* Guide simple pour aider à la démo */}
+
+            {/* Guide pour la démo */}
             <div style={{ fontSize: '11px', color: '#94a3b8', textAlign: 'center', marginTop: '-4px' }}>
-              Codes de test dispos : TKT-8821-ABCD, TKT-1092-XYZP, TKT-5544-LMNO
+              Codes de test disponibles : TKT-8821-ABCD, TKT-1092-XYZP, TKT-5544-LMNO
             </div>
           </div>
 
           {errorMsg && (
             <div className="vt-alert" style={{ background: '#fef2f2', color: '#991b1b', border: '1px solid #fecaca' }}>
-               {errorMsg}
+              {errorMsg}
             </div>
           )}
 
@@ -265,7 +286,7 @@ export default function VerificationTicket() {
             <div className="vt-alert">
               <div className="vt-alert-icon"><IconShieldLock /></div>
               <div className="vt-alert-text">
-                Chiffrement de bout en bout des données cliniques.<br/>
+                Chiffrement de bout en bout des données cliniques.<br />
                 Toutes les requêtes sont auditées pour conformité.
               </div>
             </div>
@@ -275,7 +296,7 @@ export default function VerificationTicket() {
             <div className="vt-card animate-slide-up">
               <div className="vt-card-header">
                 <div className="vt-card-left">
-                  <span className="vt-badge" style={{ 
+                  <span className="vt-badge" style={{
                     background: searchedTicket.priority.startsWith('UR') ? '#fee2e2' : '#dcfce7',
                     color: searchedTicket.priority.startsWith('UR') ? '#991b1b' : '#065f46'
                   }}>
@@ -284,23 +305,23 @@ export default function VerificationTicket() {
                   <span className="vt-ref">Réf: {searchedTicket.ref}</span>
                 </div>
                 <div className="vt-card-right">
-                  <span className="vt-queue-label">PRIORITÉ<br/>FILE</span>
-                  <span className="vt-queue-val" style={{ 
+                  <span className="vt-queue-label">PRIORITÉ<br />FILE</span>
+                  <span className="vt-queue-val" style={{
                     color: searchedTicket.priority.startsWith('UR') ? '#dc2626' : '#b45309'
                   }}>
-                    {searchedTicket.priority.split('-')[0]}-<br/>{searchedTicket.priority.split('-')[1]}
+                    {searchedTicket.priority.split('-')[0]}-<br />{searchedTicket.priority.split('-')[1]}
                   </span>
                 </div>
               </div>
 
               <div className="vt-patient">
                 <div className="vt-patient-avatar">
-                   <img src={searchedTicket.avatar} alt={searchedTicket.nameParts.join(' ')} />
+                  <img src={searchedTicket.avatar} alt={searchedTicket.nameParts.join(' ')} />
                 </div>
                 <div className="vt-patient-info">
                   <h2 className="vt-patient-name">
-                    {searchedTicket.nameParts[0]}<br/>
-                    {searchedTicket.nameParts[1]}<br/>
+                    {searchedTicket.nameParts[0]}<br />
+                    {searchedTicket.nameParts[1]}<br />
                     {searchedTicket.nameParts[2]}
                   </h2>
                   <p className="vt-patient-dob">{searchedTicket.dob}</p>
@@ -319,10 +340,33 @@ export default function VerificationTicket() {
                   <div className="vt-detail-sub">{searchedTicket.time}</div>
                 </div>
               </div>
+
+              <div className="vt-banner">
+                <div className="vt-banner__icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="2" y="7" width="20" height="14" rx="2" /><path d="M16 3l-4 4-4-4" />
+                  </svg>
+                </div>
+                <div className="vt-banner__text">
+                  <strong>Admission diagnostique prête</strong>
+                  <p>Le patient a terminé le dépistage pré-clinique.</p>
+                </div>
+                <div className="vt-banner__arrow">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                </div>
+              </div>
+
+              <div className="vt-card-footer">
+                <button className="vt-btn-secondary">Imprimer le résumé</button>
+                <button className="vt-btn-primary">Enregistrer l'arrivée</button>
+              </div>
             </div>
           )}
 
         </div>
+
       </main>
     </div>
   )

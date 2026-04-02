@@ -114,9 +114,21 @@ body {
 }
 
 .nav-item--active {
-  background: #eff6ff;
-  color: #2563eb;
+  background: #f1f5f9;
+  color: #1e293b;
   font-weight: 600;
+  position: relative;
+}
+
+.nav-item--active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 15%;
+  height: 70%;
+  width: 3px;
+  background: #2563eb;
+  border-radius: 0 4px 4px 0;
 }
 
 .nav-item__icon {
@@ -158,6 +170,12 @@ body {
 .sidebar__footer {
   padding: 12px 12px 0;
   border-top: 1px solid #f0f2f8;
+}
+
+.sidebar__footer-box {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 4px;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -167,20 +185,31 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 9px 12px;
-  border-radius: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
   border: none;
   background: transparent;
   font-family: 'Inter', sans-serif;
   font-size: 13px;
-  color: #94a3b8;
+  font-weight: 500;
+  color: #64748b;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition: all 0.2s;
+  text-align: left;
 }
 
 .footer-link:hover {
-  background: #f1f5f9;
-  color: #64748b;
+  background: #fff;
+  color: #1e293b;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.footer-link svg {
+  color: #94a3b8;
+}
+
+.footer-link:hover svg {
+  color: #2563eb;
 }
 
 /* ═══════════════════════════════════════════
@@ -207,6 +236,40 @@ body {
   font-size: 14px;
   font-weight: 500;
   color: #2563eb;
+  white-space: nowrap;
+}
+
+.topbar__search {
+  flex: 1;
+  max-width: 440px;
+  margin: 0 40px;
+  position: relative;
+}
+
+.topbar__search svg {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+}
+
+.topbar__search input {
+  width: 100%;
+  padding: 11px 16px 11px 48px;
+  background: #f1f5f9;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  font-family: inherit;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.topbar__search input:focus {
+  background: #fff;
+  border-color: #2563eb;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08);
+  outline: none;
 }
 
 .topbar__actions {
@@ -660,4 +723,18 @@ body {
   background: #f1f5f9;
   border-color: #cbd5e1;
   color: #2563eb;
+}
+
+.btn-refresh--loading svg {
+  animation: rotate 1s linear infinite;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.btn-refresh:disabled {
+  cursor: wait;
+  opacity: 0.8;
 }

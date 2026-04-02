@@ -2,7 +2,15 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './FilesAttente.css'
 
-// ── Icons ──────────────────────────────────────────────────────────────────────
+import './FilesAttente.css'
+
+const IconSearch = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+  </svg>
+)
+
+// ── Icônes ───────────────────────────────────────────────────────────────────
 const IconDashboard = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" />
@@ -63,7 +71,7 @@ const IconAlert = () => (
   </svg>
 )
 
-// ── Data ───────────────────────────────────────────────────────────────────────
+// ── Données ───────────────────────────────────────────────────────────────────
 
 const navItems = [
   { id: 'dashboard', label: 'Tableau de bord', icon: <IconDashboard /> },
@@ -159,7 +167,7 @@ const trafficTimes = [
   { time: '13:00', level: 'Optimal', pct: 20, color: '#cbd5e1' },
 ]
 
-// ── Component ──────────────────────────────────────────────────────────────────
+// ── Composant Principal ───────────────────────────────────────────────────────
 
 export default function WaitingQueues() {
   const [activeNav, setActiveNav] = useState('waiting-queues')
@@ -171,11 +179,12 @@ export default function WaitingQueues() {
     if (id === 'new-requests') navigate('/requests')
     if (id === 'waiting-queues') navigate('/waiting-queues')
     if (id === 'ticket-verification') navigate('/ticket-verification')
+    if (id === 'history') navigate('/history')
   }
 
   return (
     <div className="app-shell">
-      {/* ── Sidebar ── */}
+      {/* ── Barre Latérale ── */}
       <aside className="sidebar">
         <div className="sidebar__brand">
           <div className="brand-logo">
@@ -203,24 +212,37 @@ export default function WaitingQueues() {
         </nav>
 
         <div className="sidebar__emergency">
-          <button className="btn-emergency">✱ Emergency Intake</button>
+          <button className="btn-emergency" onClick={() => navigate('/emergency-intake')}>
+            Admission Urgente
+          </button>
         </div>
 
         <div className="sidebar__footer">
-          <button className="footer-link"><IconSettings /> Paramètres</button>
-          <button className="footer-link"><IconSupport /> Assistance</button>
+          <div className="sidebar__footer-box">
+            <button className="footer-link">
+              <IconSettings /> <span>Paramètres</span>
+            </button>
+            <button className="footer-link">
+              <IconSupport /> <span>Assistance</span>
+            </button>
+          </div>
         </div>
       </aside>
 
-      {/* ── Main ── */}
+      {/* ── Contenu Principal ── */}
       <main className="main-content">
         {/* Topbar */}
         <header className="topbar">
-          <div className="topbar__station">
-            <span className="station-id">Station A-12</span>
-            <span className="topbar__sep">·</span>
-            <span className="topbar__date">24 octobre 2023</span>
+          <div className="topbar__date">24 octobre 2023</div>
+
+          <div className="topbar__search">
+            <IconSearch />
+            <input
+              type="text"
+              placeholder="Rechercher un patient ou un service..."
+            />
           </div>
+
           <div className="topbar__actions">
             <button className="icon-btn" aria-label="Notifications">
               <IconBell />
@@ -230,15 +252,15 @@ export default function WaitingQueues() {
             <div className="topbar__divider" />
             <div className="topbar__user">
               <div className="topbar__user-info">
-                <span className="user-name">Dr. Aris Thorne</span>
-                <span className="user-role">Superviseur</span>
+                <span className="user-name">Jean Dupont</span>
+                <span className="user-role">Réceptionniste</span>
               </div>
-              <div className="user-avatar">AT</div>
+              <div className="user-avatar">JD</div>
             </div>
           </div>
         </header>
 
-        {/* Page body */}
+        {/* Corps de la page */}
         <div className="page-body">
 
           {/* Hero + mini stats */}
@@ -262,7 +284,7 @@ export default function WaitingQueues() {
             </div>
           </div>
 
-          {/* Department grid */}
+          {/* Grille des départements */}
           <div className="dept-grid">
             {departments.map((dept) => (
               <div
@@ -297,7 +319,7 @@ export default function WaitingQueues() {
             ))}
           </div>
 
-          {/* Peak traffic */}
+          {/* Heures de pointe */}
           <div className="traffic-section">
             <div className="traffic-section__header">
               <h2 className="traffic-title">Heures de pointe</h2>
@@ -319,7 +341,7 @@ export default function WaitingQueues() {
             </div>
           </div>
 
-          {/* Staffing alert */}
+          {/* Alerte Personnel */}
           <div className="staffing-section">
             <h2 className="staffing-title">Alerte Personnel</h2>
             <div className="staffing-card">

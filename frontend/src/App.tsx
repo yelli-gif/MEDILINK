@@ -4,6 +4,9 @@ import NewRequests from './pages/reception/NouvellesDemandes'
 import WaitingQueues from './pages/reception/FilesAttente'
 import DetailFile from './pages/reception/DetailFile'
 import VerificationTicket from './pages/reception/VerificationTicket'
+import EmergencyIntake from './pages/reception/EmergencyIntake'
+
+import Historique from './pages/reception/Historique'
 
 function App() {
   return (
@@ -15,6 +18,8 @@ function App() {
         <Route path="/waiting-queues" element={<WaitingQueues />} />
         <Route path="/waiting-queues/:serviceId" element={<DetailFile />} />
         <Route path="/ticket-verification" element={<VerificationTicket />} />
+        <Route path="/emergency-intake" element={<EmergencyIntake />} />
+        <Route path="/history" element={<Historique />} />
       </Routes>
     </BrowserRouter>
   )
