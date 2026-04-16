@@ -171,7 +171,13 @@ const trafficTimes = [
 
 export default function WaitingQueues() {
   const [activeNav, setActiveNav] = useState('waiting-queues')
+  const [selectedDate, setSelectedDate] = useState('2023-10-24')
   const navigate = useNavigate()
+
+  const formatDate = (dateStr: string) => {
+    const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long', year: 'numeric' }
+    return new Date(dateStr).toLocaleDateString('fr-FR', options)
+  }
 
   const handleNav = (id: string) => {
     setActiveNav(id)
@@ -233,7 +239,24 @@ export default function WaitingQueues() {
       <main className="main-content">
         {/* Topbar */}
         <header className="topbar">
-          <div className="topbar__date">24 octobre 2023</div>
+          <div className="topbar__date" style={{ position: 'relative', cursor: 'pointer' }}>
+            <span onClick={() => (document.getElementById('wq-date-picker') as HTMLInputElement)?.showPicker()}>
+              {formatDate(selectedDate)}
+            </span>
+            <input 
+              id="wq-date-picker"
+              type="date" 
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              style={{ 
+                position: 'absolute', 
+                opacity: 0, 
+                pointerEvents: 'none',
+                width: 0,
+                height: 0
+              }} 
+            />
+          </div>
 
           <div className="topbar__search">
             <IconSearch />
@@ -266,7 +289,16 @@ export default function WaitingQueues() {
           {/* Hero + mini stats */}
           <div className="wq-hero">
             <div className="wq-hero__text">
-              <h1 className="page-title">Files d'attente</h1>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '8px' }}>
+                <h1 className="page-title" style={{ margin: 0 }}>Files d'attente</h1>
+                <button 
+                  className="wq-add-btn-circle" 
+                  onClick={() => navigate('/requests')}
+                  title="Ajouter une nouvelle demande"
+                >
+                  <IconPlus />
+                </button>
+              </div>
               <p className="page-subtitle">
                 Vue en direct de la circulation des patients dans les services.<br />
                 Priorisation du flux et clarté clinique.

@@ -250,6 +250,26 @@ body { font-family: 'Inter', system-ui, sans-serif; }
   gap: 24px;
   flex-wrap: wrap;
 }
+
+.wq-add-btn-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2);
+}
+
+.wq-add-btn-circle:hover {
+  background: #1d4ed8;
+  transform: scale(1.1);
+}
 .wq-hero__stats { display: flex; gap: 14px; flex-shrink: 0; }
 .wq-hero-stat {
   background: #fff;

@@ -156,8 +156,16 @@ export default function NewRequests() {
   const [showModal, setShowModal] = useState(false)
   const [validatedReq, setValidatedReq] = useState<Request | null>(null)
   const [isValidating, setIsValidating] = useState<string | null>(null)
+  const [activeMenu, setActiveMenu] = useState<string | null>(null)
+  const [ticketTime, setTicketTime] = useState('il y a 2 min')
+  const [selectedDate, setSelectedDate] = useState('2023-10-24')
   
   const navigate = useNavigate()
+
+  const formatDate = (dateStr: string) => {
+    const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long', year: 'numeric' }
+    return new Date(dateStr).toLocaleDateString('fr-FR', options)
+  }
 
   const handleNav = (id: string) => {
     if (id === 'dashboard') navigate('/dashboard')
@@ -173,6 +181,7 @@ export default function NewRequests() {
     setTimeout(() => {
       setIsValidating(null)
       setValidatedReq(req)
+      setTicketTime('À l\'instant')
       setShowModal(true)
     }, 800)
   }
@@ -233,7 +242,24 @@ export default function NewRequests() {
       <main className="hi-main">
         {/* Topbar */}
         <header className="hi-topbar">
-          <div className="hi-topbar-date">24 octobre 2023</div>
+          <div className="hi-topbar-date" style={{ position: 'relative', cursor: 'pointer' }}>
+            <span onClick={() => (document.getElementById('requests-date-picker') as HTMLInputElement)?.showPicker()}>
+              {formatDate(selectedDate)}
+            </span>
+            <input 
+              id="requests-date-picker"
+              type="date" 
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              style={{ 
+                position: 'absolute', 
+                opacity: 0, 
+                pointerEvents: 'none',
+                width: 0,
+                height: 0
+              }} 
+            />
+          </div>
 
           <div className="hi-topbar__search">
             <IconSearch />
@@ -343,7 +369,18 @@ export default function NewRequests() {
                       >
                         {isValidating === req.id ? 'Validation...' : 'Valider la demande'}
                       </button>
-                      <button className="hi-btn-more"><IconMore /></button>
+                      <div className="hi-more-wrapper" style={{ position: 'relative' }}>
+                        <button className="hi-btn-more" onClick={() => setActiveMenu(activeMenu === req.id ? null : req.id)}>
+                          <IconMore />
+                        </button>
+                        {activeMenu === req.id && (
+                          <div className="hi-dropdown-menu">
+                            <button className="hi-dropdown-item">Modifier</button>
+                            <button className="hi-dropdown-item">Mettre en attente</button>
+                            <button className="hi-dropdown-item hi-dropdown-item--danger">Annuler</button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -371,7 +408,7 @@ export default function NewRequests() {
               <div className="hi-ticket-module">
                 <div className="hi-ticket-header">
                   <span className="hi-ticket-label">DERNIER TICKET</span>
-                  <span className="hi-ticket-time">Généré il y a 2 min</span>
+                  <span className="hi-ticket-time">Généré {ticketTime}</span>
                 </div>
 
                 <div className="hi-ticket-card">
@@ -394,7 +431,7 @@ export default function NewRequests() {
                     </div>
                   </div>
 
-                  <button className="hi-btn-reprint">
+                  <button className="hi-btn-reprint" onClick={() => window.print()}>
                     <IconPrint /> <span>Ré-imprimer le ticket</span>
                   </button>
                 </div>

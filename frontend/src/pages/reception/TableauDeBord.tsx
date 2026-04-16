@@ -201,7 +201,14 @@ export default function Dashboard() {
   const [search, setSearch] = useState('')
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [lastUpdated, setLastUpdated] = useState('il y a 2 min')
+  const [selectedDate, setSelectedDate] = useState('2023-10-24')
+  const [filterStatus, setFilterStatus] = useState<'all' | 'on-site'>('all')
   const navigate = useNavigate()
+
+  const formatDate = (dateStr: string) => {
+    const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long', year: 'numeric' }
+    return new Date(dateStr).toLocaleDateString('fr-FR', options)
+  }
 
   const handleRefresh = () => {
     setIsRefreshing(true)
@@ -222,10 +229,13 @@ export default function Dashboard() {
   }
 
   const filtered = patients.filter(
-    (p) =>
-      p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.doctor.toLowerCase().includes(search.toLowerCase()) ||
-      p.service.toLowerCase().includes(search.toLowerCase()),
+    (p) => {
+      const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) ||
+                            p.doctor.toLowerCase().includes(search.toLowerCase()) ||
+                            p.service.toLowerCase().includes(search.toLowerCase());
+      const matchesFilter = filterStatus === 'all' || p.status === 'confirmed' || p.status === 'in-progress';
+      return matchesSearch && matchesFilter;
+    }
   )
 
   return (
@@ -279,7 +289,24 @@ export default function Dashboard() {
       <main className="main-content">
         {/* Topbar */}
         <header className="topbar">
-          <div className="topbar__date">24 octobre 2023</div>
+          <div className="topbar__date" style={{ position: 'relative', cursor: 'pointer' }}>
+            <span onClick={() => (document.getElementById('dashboard-date-picker') as HTMLInputElement)?.showPicker()}>
+              {formatDate(selectedDate)}
+            </span>
+            <input 
+              id="dashboard-date-picker"
+              type="date" 
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              style={{ 
+                position: 'absolute', 
+                opacity: 0, 
+                pointerEvents: 'none',
+                width: 0,
+                height: 0
+              }} 
+            />
+          </div>
 
           <div className="topbar__search">
             <IconSearch />
@@ -368,7 +395,14 @@ export default function Dashboard() {
                 <p className="appointments-subtitle">Flux de patients pour la matinée du 24 octobre</p>
               </div>
               <div className="appointments-controls">
-                <button className="icon-btn icon-btn--border" aria-label="Filtrer"><IconFilter /></button>
+                <button 
+                  className={`icon-btn icon-btn--border ${filterStatus === 'on-site' ? 'icon-btn--active' : ''}`} 
+                  aria-label="Filtrer"
+                  onClick={() => setFilterStatus(prev => prev === 'all' ? 'on-site' : 'all')}
+                  title={filterStatus === 'all' ? "Filtrer: Tous" : "Filtrer: Sur place"}
+                >
+                  <IconFilter />
+                </button>
               </div>
             </div>
 

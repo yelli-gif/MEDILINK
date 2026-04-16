@@ -405,7 +405,7 @@ export default function VerificationTicket() {
               </div>
 
               <div className="vt-card-footer">
-                <button className="vt-btn-secondary">Imprimer le résumé</button>
+                <button className="vt-btn-secondary" onClick={() => window.print()}>Imprimer le résumé</button>
                 <button className="vt-btn-primary">Enregistrer l'arrivée</button>
               </div>
             </div>

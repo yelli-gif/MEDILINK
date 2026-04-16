@@ -584,6 +584,61 @@
   color: #cbd5e1;
   cursor: pointer;
   padding: 4px;
+  transition: color 0.2s;
+}
+
+.hi-btn-more:hover {
+  color: #94a3b8;
+}
+
+/* Dropdown Menu */
+.hi-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: 160px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  padding: 6px;
+  z-index: 100;
+  margin-top: 8px;
+  animation: dropdownFadeIn 0.2s ease-out;
+}
+
+@keyframes dropdownFadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.hi-dropdown-item {
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  background: none;
+  text-align: left;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.hi-dropdown-item:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+.hi-dropdown-item--danger {
+  color: #e11d48;
+}
+
+.hi-dropdown-item--danger:hover {
+  background: #fff1f2;
+  color: #e11d48;
 }
 
 /* ── Process Box ── */
