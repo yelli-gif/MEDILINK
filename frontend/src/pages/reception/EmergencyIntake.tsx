@@ -120,6 +120,8 @@ export default function EmergencyIntake() {
     service: ''
   })
 
+  const [showSuccess, setShowSuccess] = useState(false)
+
   const handleNav = (id: string) => {
     setActiveNav(id)
     if (id === 'dashboard') navigate('/dashboard')
@@ -132,8 +134,13 @@ export default function EmergencyIntake() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     console.log('Enregistrement patient urgence :', formData)
-    alert(`Admission Urgente : ${formData.prenom} ${formData.nom} ajouté à la file !`)
-    setFormData({ nom: '', prenom: '', service: '' })
+    
+    // Affichage d'un succès temporaire
+    setShowSuccess(true)
+    setTimeout(() => {
+      setShowSuccess(false)
+      setFormData({ nom: '', prenom: '', service: '' })
+    }, 3000)
   }
 
   return (
@@ -176,10 +183,10 @@ export default function EmergencyIntake() {
 
         <div className="sidebar__footer">
           <div className="sidebar__footer-box">
-            <button className="footer-link">
+            <button className="footer-link" onClick={() => navigate('/settings')}>
               <IconSettings /> <span>Paramètres</span>
             </button>
-            <button className="footer-link">
+            <button className="footer-link" onClick={() => navigate('/support')}>
               <IconSupport /> <span>Assistance</span>
             </button>
           </div>
@@ -201,8 +208,8 @@ export default function EmergencyIntake() {
           </div>
 
           <div className="hi-topbar__actions">
-            <button className="vt-icon-btn"><IconBell /></button>
-            <button className="vt-icon-btn"><IconHelp /></button>
+            <button className="vt-icon-btn" onClick={() => navigate('/notifications')}><IconBell /></button>
+            <button className="vt-icon-btn" onClick={() => navigate('/help')}><IconHelp /></button>
             <div className="topbar__divider" />
             <div className="hi-user-info">
               <span className="user-name">Jean Dupont</span>
@@ -275,10 +282,16 @@ export default function EmergencyIntake() {
                     </div>
                   </div>
                   
-                  <button type="submit" className="hi-btn-submit">
-                    <IconCheckCircle /> Ajouter à la file
+                   <button type="submit" className="hi-btn-submit" disabled={showSuccess}>
+                    {showSuccess ? "Patient ajouté !" : <><IconCheckCircle /> Ajouter à la file</>}
                   </button>
                 </form>
+
+                {showSuccess && (
+                  <div className="hi-success-banner">
+                    L'admission de <strong>{formData.prenom} {formData.nom}</strong> a été validée.
+                  </div>
+                )}
               </div>
 
               {/* Rappel de protocole */}
@@ -320,7 +333,7 @@ export default function EmergencyIntake() {
               <div className="hi-history">
                 <div className="hi-history-header">
                   <h3 className="hi-history-title">Récemment enregistrés</h3>
-                  <button className="hi-history-link">Voir tout l'historique</button>
+                  <button className="hi-history-link" onClick={() => navigate('/history')}>Voir tout l'historique</button>
                 </div>
                 
                 <div className="hi-table-container">

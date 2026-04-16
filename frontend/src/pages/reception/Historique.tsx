@@ -197,10 +197,10 @@ export default function Historique() {
 
         <div className="sidebar__footer">
           <div className="sidebar__footer-box">
-            <button className="footer-link">
+            <button className="footer-link" onClick={() => navigate('/settings')}>
               <IconSettings /> <span>Paramètres</span>
             </button>
-            <button className="footer-link">
+            <button className="footer-link" onClick={() => navigate('/support')}>
               <IconSupport /> <span>Assistance</span>
             </button>
           </div>
@@ -224,8 +224,8 @@ export default function Historique() {
           </div>
 
           <div className="topbar__actions">
-            <button className="icon-btn" aria-label="Notifications"><IconBell /></button>
-            <button className="icon-btn" aria-label="Aide"><IconHelp /></button>
+            <button className="icon-btn" aria-label="Notifications" onClick={() => navigate('/notifications')}><IconBell /></button>
+            <button className="icon-btn" aria-label="Aide" onClick={() => navigate('/help')}><IconHelp /></button>
             <div className="topbar__divider" />
             <div className="topbar__user">
               <div className="topbar__user-info">

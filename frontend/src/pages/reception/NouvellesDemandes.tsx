@@ -148,6 +148,10 @@ const TicketVisualSVG = () => (
 export default function NewRequests() {
   const [search, setSearch] = useState('')
   const [sortBy, setSortBy] = useState<'priority' | 'time'>('priority')
+  const [showModal, setShowModal] = useState(false)
+  const [validatedReq, setValidatedReq] = useState<Request | null>(null)
+  const [isValidating, setIsValidating] = useState<string | null>(null)
+  
   const navigate = useNavigate()
 
   const handleNav = (id: string) => {
@@ -156,6 +160,16 @@ export default function NewRequests() {
     if (id === 'waiting-queues') navigate('/waiting-queues')
     if (id === 'ticket-verification') navigate('/ticket-verification')
     if (id === 'history') navigate('/history')
+  }
+
+  const handleValidate = (req: Request) => {
+    setIsValidating(req.id)
+    // Simulation d'un délai de validation
+    setTimeout(() => {
+      setIsValidating(null)
+      setValidatedReq(req)
+      setShowModal(true)
+    }, 800)
   }
 
   const sorted = [...requests].sort((a, b) => {
@@ -200,10 +214,10 @@ export default function NewRequests() {
 
         <div className="hi-sidebar__footer">
           <div className="hi-footer-box">
-            <button className="hi-footer-link">
+            <button className="hi-footer-link" onClick={() => navigate('/settings')}>
               <IconSettings /> <span>Paramètres</span>
             </button>
-            <button className="hi-footer-link">
+            <button className="hi-footer-link" onClick={() => navigate('/support')}>
               <IconSupport /> <span>Assistance</span>
             </button>
           </div>
@@ -227,8 +241,8 @@ export default function NewRequests() {
           </div>
 
           <div className="hi-topbar__actions">
-            <button className="hi-icon-btn"><IconBell /></button>
-            <button className="hi-icon-btn"><IconHelp /></button>
+            <button className="hi-icon-btn" onClick={() => navigate('/notifications')}><IconBell /></button>
+            <button className="hi-icon-btn" onClick={() => navigate('/help')}><IconHelp /></button>
             <div className="hi-topbar__divider" />
             <div className="hi-user-info">
               <span className="hi-user-name">Jean Dupont</span>
@@ -317,7 +331,13 @@ export default function NewRequests() {
                       <div className="hi-req-notes">{req.notes}</div>
                     </div>
                     <div className="hi-req-card__actions">
-                      <button className="hi-btn-validate">Valider la demande</button>
+                      <button 
+                        className={`hi-btn-validate ${isValidating === req.id ? 'hi-btn-validate--loading' : ''}`}
+                        onClick={() => handleValidate(req)}
+                        disabled={isValidating !== null}
+                      >
+                        {isValidating === req.id ? 'Validation...' : 'Valider la demande'}
+                      </button>
                       <button className="hi-btn-more"><IconMore /></button>
                     </div>
                   </div>
@@ -378,6 +398,54 @@ export default function NewRequests() {
           </div>
         </div>
       </main>
+
+      {/* ── Modale de Ticket Généré ── */}
+      {showModal && validatedReq && (
+        <div className="hi-modal-overlay">
+          <div className="hi-modal-content">
+            <div className="hi-modal-header">
+              <div className="hi-success-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              </div>
+              <h3 className="hi-modal-title">Ticket Généré avec Succès</h3>
+              <p className="hi-modal-subtitle">Le patient a été ajouté à la file d'attente.</p>
+            </div>
+            
+            <div className="hi-ticket-preview">
+              <div className="hi-ticket-card hi-ticket-card--preview">
+                <div className="hi-ticket-qr">
+                  <TicketVisualSVG />
+                </div>
+                <h4 className="hi-ticket-name">{validatedReq.name}</h4>
+                <div className="hi-ticket-meta">
+                  Ticket #{Math.floor(Math.random() * 900) + 100}-B • {validatedReq.service}
+                </div>
+                <div className="hi-ticket-details">
+                  <div className="hi-ticket-detail">
+                    <span className="hi-detail-label">ÉTAGE</span>
+                    <span className="hi-detail-value">Niveau 2</span>
+                  </div>
+                  <div className="hi-ticket-detail">
+                    <span className="hi-detail-label">CODE</span>
+                    <span className="hi-detail-value">#{Math.floor(Math.random() * 50) + 1}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="hi-modal-actions">
+              <button className="hi-btn-print-full" onClick={() => window.print()}>
+                <IconPrint /> Imprimer le Ticket
+              </button>
+              <button className="hi-btn-close" onClick={() => setShowModal(false)}>
+                Fermer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -254,10 +254,10 @@ export default function DetailFile() {
 
         <div className="sidebar__footer">
           <div className="sidebar__footer-box">
-            <button className="footer-link">
+            <button className="footer-link" onClick={() => navigate('/settings')}>
               <IconSettings /> <span>Paramètres</span>
             </button>
-            <button className="footer-link">
+            <button className="footer-link" onClick={() => navigate('/support')}>
               <IconSupport /> <span>Assistance</span>
             </button>
           </div>
@@ -279,10 +279,10 @@ export default function DetailFile() {
           </div>
 
           <div className="topbar__actions">
-            <button className="icon-btn" aria-label="Notifications">
+            <button className="icon-btn" aria-label="Notifications" onClick={() => navigate('/notifications')}>
               <IconBell /><span className="notif-dot" />
             </button>
-            <button className="icon-btn" aria-label="Aide"><IconHelp /></button>
+            <button className="icon-btn" aria-label="Aide" onClick={() => navigate('/help')}><IconHelp /></button>
             <div className="topbar__divider" />
             <div className="topbar__user">
               <div className="topbar__user-info">
@@ -409,19 +409,19 @@ export default function DetailFile() {
               <div className="action-card__icon"><IconCheckTask /></div>
               <h3 className="action-card__title">Ajouter manuellement</h3>
               <p className="action-card__desc">Inscrire un patient arrivé sans rendez-vous préalable.</p>
-              <button className="action-card__link">Ouvrir le formulaire</button>
+              <button className="action-card__link" onClick={() => navigate('/emergency-intake')}>Ouvrir le formulaire</button>
             </div>
             <div className="action-card">
               <div className="action-card__icon"><IconShuffle /></div>
               <h3 className="action-card__title">Réorganiser la file</h3>
               <p className="action-card__desc">Ajuster les priorités selon l'urgence clinique actuelle.</p>
-              <button className="action-card__link">Mode édition</button>
+              <button className="action-card__link" onClick={() => navigate('/reorganize')}>Mode édition</button>
             </div>
             <div className="action-card">
               <div className="action-card__icon"><IconBarChart /></div>
               <h3 className="action-card__title">Rapport du jour</h3>
               <p className="action-card__desc">Consulter les statistiques de passage et d'attente.</p>
-              <button className="action-card__link">Voir les statistiques</button>
+              <button className="action-card__link" onClick={() => navigate('/history')}>Voir les statistiques</button>
             </div>
           </div>
         </div>

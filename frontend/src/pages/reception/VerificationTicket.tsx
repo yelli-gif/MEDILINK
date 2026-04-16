@@ -138,6 +138,7 @@ export default function VerificationTicket() {
   const [ticketCode, setTicketCode] = useState('TKT-8821-ABCD')
   const [searchedTicket, setSearchedTicket] = useState<typeof mockTickets[0] | null>(null)
   const [errorMsg, setErrorMsg] = useState('')
+  const [isVerifying, setIsVerifying] = useState(false)
 
   const handleNav = (id: string) => {
     setActiveNav(id)
@@ -155,14 +156,19 @@ export default function VerificationTicket() {
       return
     }
 
-    const found = mockTickets.find(t => t.code === ticketCode.trim())
-    if (found) {
-      setSearchedTicket(found)
-      setErrorMsg('')
-    } else {
-      setSearchedTicket(null)
-      setErrorMsg('Aucun ticket trouvé avec ce code d\'identification.')
-    }
+    setIsVerifying(true)
+    setErrorMsg('')
+    setSearchedTicket(null)
+
+    setTimeout(() => {
+      const found = mockTickets.find(t => t.code === ticketCode.trim())
+      setIsVerifying(false)
+      if (found) {
+        setSearchedTicket(found)
+      } else {
+        setErrorMsg('Aucun ticket trouvé avec ce code d\'identification.')
+      }
+    }, 1200)
   }
 
   return (
@@ -206,10 +212,10 @@ export default function VerificationTicket() {
 
         <div className="sidebar__footer">
           <div className="sidebar__footer-box">
-            <button className="footer-link">
+            <button className="footer-link" onClick={() => navigate('/settings')}>
               <IconSettings /> <span>Paramètres</span>
             </button>
-            <button className="footer-link">
+            <button className="footer-link" onClick={() => navigate('/support')}>
               <IconSupport /> <span>Assistance</span>
             </button>
           </div>
@@ -231,8 +237,8 @@ export default function VerificationTicket() {
           </div>
 
           <div className="vt-topbar__actions">
-            <button className="vt-icon-btn"><IconBell /></button>
-            <button className="vt-icon-btn"><IconHelp /></button>
+            <button className="vt-icon-btn" onClick={() => navigate('/notifications')}><IconBell /></button>
+            <button className="vt-icon-btn" onClick={() => navigate('/help')}><IconHelp /></button>
             <div className="topbar__divider" />
             <div className="hi-user-info">
               <span className="user-name">Jean Dupont</span>
@@ -266,8 +272,14 @@ export default function VerificationTicket() {
               />
             </div>
 
-            <button className="vt-btn" onClick={handleVerify}>
-              <IconShieldCheck /> Vérifier l'authenticité
+            <button 
+              className={`vt-btn ${isVerifying ? 'vt-btn--loading' : ''}`} 
+              onClick={handleVerify}
+              disabled={isVerifying}
+            >
+              {isVerifying ? 'Analyse en cours...' : (
+                <><IconShieldCheck /> Vérifier l'authenticité</>
+              )}
             </button>
 
             {/* Guide pour la démo */}
@@ -282,13 +294,20 @@ export default function VerificationTicket() {
             </div>
           )}
 
-          {!errorMsg && !searchedTicket && (
+          {!errorMsg && !searchedTicket && !isVerifying && (
             <div className="vt-alert">
               <div className="vt-alert-icon"><IconShieldLock /></div>
               <div className="vt-alert-text">
                 Chiffrement de bout en bout des données cliniques.<br />
                 Toutes les requêtes sont auditées pour conformité.
               </div>
+            </div>
+          )}
+
+          {isVerifying && (
+            <div className="vt-scanning-visual">
+              <div className="vt-scan-line" />
+              <p>Analyse de sécurité...</p>
             </div>
           )}
 

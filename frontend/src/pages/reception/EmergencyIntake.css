@@ -582,3 +582,20 @@
   color: #64748b;
   font-weight: 500;
 }
+/* ── Success Feedback ── */
+.hi-success-banner {
+  margin-top: 20px;
+  padding: 16px;
+  background: #dcfce7;
+  color: #166534;
+  border-radius: 12px;
+  font-size: 14px;
+  text-align: center;
+  border: 1px solid #bbf7d0;
+  animation: slideInUp 0.3s ease-out;
+}
+
+@keyframes slideInUp {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
