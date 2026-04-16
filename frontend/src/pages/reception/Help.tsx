@@ -59,7 +59,7 @@ const HelpPage = () => {
               </div>
               <div>
                 <h4 style={{ color: '#2563eb', marginBottom: '4px' }}>Que faire en cas d'urgence médicale ?</h4>
-                <p style={{ fontSize: '14px', color: '#64748b' }}>Utilisez le gros bouton bleu "Admission Urgente" présent en bas de la barre latérale sur toutes les pages.</p>
+                <p style={{ fontSize: '14px', color: '#64748b' }}>Utilisez le gros bouton bleu "Ajouter sur place" présent en bas de la barre latérale sur toutes les pages.</p>
               </div>
             </div>
           </div>

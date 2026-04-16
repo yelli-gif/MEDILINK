@@ -213,7 +213,7 @@ export default function WaitingQueues() {
 
         <div className="sidebar__emergency">
           <button className="btn-emergency" onClick={() => navigate('/emergency-intake')}>
-            Admission Urgente
+            Ajouter sur place
           </button>
         </div>
 

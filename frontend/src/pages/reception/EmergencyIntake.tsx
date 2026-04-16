@@ -177,7 +177,7 @@ export default function EmergencyIntake() {
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 2l9 10-9 10-9-10 9-10z" /><path d="M12 8v8" /><path d="M8 12h8" />
             </svg>
-            Admission Urgente
+            Ajouter sur place
           </button>
         </div>
 
@@ -223,7 +223,7 @@ export default function EmergencyIntake() {
         <div className="hi-page-body">
           
           <div className="hi-header">
-            <h1 className="hi-title">Admission <span className="hi-title-hl">Urgente</span></h1>
+            <h1 className="hi-title">Ajouter <span className="hi-title-hl">sur place</span></h1>
             <p className="hi-subtitle">
               Enregistrement manuel pour les patients sans application mobile.
             </p>
