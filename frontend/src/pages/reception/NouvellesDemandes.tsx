@@ -67,6 +67,11 @@ const IconPrint = () => (
     <rect x="6" y="14" width="12" height="8" />
   </svg>
 )
+const IconX = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+)
 // -- Unused icons removed --
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -401,8 +406,11 @@ export default function NewRequests() {
 
       {/* ── Modale de Ticket Généré ── */}
       {showModal && validatedReq && (
-        <div className="hi-modal-overlay">
-          <div className="hi-modal-content">
+        <div className="hi-modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="hi-modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="hi-modal-close-icon" onClick={() => setShowModal(false)}>
+              <IconX />
+            </button>
             <div className="hi-modal-header">
               <div className="hi-success-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">

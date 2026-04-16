@@ -79,6 +79,11 @@ const IconShieldLock = () => (
     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><rect x="9" y="10" width="6" height="6" rx="1" /><path d="M10 10V8a2 2 0 0 1 4 0v2" />
   </svg>
 )
+const IconX = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+)
 
 // ── Données ───────────────────────────────────────────────────────────────────
 
@@ -312,7 +317,29 @@ export default function VerificationTicket() {
           )}
 
           {searchedTicket && (
-            <div className="vt-card animate-slide-up">
+            <div className="vt-card animate-slide-up" style={{ position: 'relative' }}>
+              <button 
+                onClick={() => { setSearchedTicket(null); setTicketCode(''); }}
+                style={{
+                  position: 'absolute',
+                  top: '-12px',
+                  right: '-12px',
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  border: '1px solid #e2e8f0',
+                  background: '#fff',
+                  color: '#64748b',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                  zIndex: 10
+                }}
+              >
+                <IconX />
+              </button>
               <div className="vt-card-header">
                 <div className="vt-card-left">
                   <span className="vt-badge" style={{
