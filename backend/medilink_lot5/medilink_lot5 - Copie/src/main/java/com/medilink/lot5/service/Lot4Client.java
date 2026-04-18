@@ -13,6 +13,7 @@ public class Lot4Client {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
+    @SuppressWarnings("unchecked")
     public Map<String, Object> getOrdonnanceById(Long id) {
         try {
             return restTemplate.getForObject(lot4Url + "/api/ordonnances/" + id, Map.class);

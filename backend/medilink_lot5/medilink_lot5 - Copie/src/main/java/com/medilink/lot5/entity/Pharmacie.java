@@ -3,7 +3,7 @@ package com.medilink.lot5.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.awt.*;
+
 import org.locationtech.jts.geom.Point; // Utilise bien cette bibliothèque
 
 

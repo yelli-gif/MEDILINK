@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 @org.springframework.stereotype.Service
 @RequiredArgsConstructor
 @Transactional
+@SuppressWarnings("null")
 public class ServiceService {
 
     private final ServiceRepository serviceRepository;

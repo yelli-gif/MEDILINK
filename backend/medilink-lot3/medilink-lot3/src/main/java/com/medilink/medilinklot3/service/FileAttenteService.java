@@ -1,9 +1,9 @@
 package com.medilink.medilinklot3.service;
 
 import com.medilink.medilinklot3.entity.FileAttente;
-import com.medilink.medilinklot3.entity.Ticket;
+
 import com.medilink.medilinklot3.repository.FileAttenteRepository;
-import com.medilink.medilinklot3.repository.TicketRepository;
+
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;

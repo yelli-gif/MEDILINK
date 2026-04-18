@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
+@SuppressWarnings("unchecked")
 public class Lot1Client {
 
     @Value("${lot1.url:http://localhost:8081}")

@@ -4,7 +4,6 @@ import com.medilink.patient.dto.RendezVousDTO;
 import com.medilink.patient.dto.RendezVousResponseDTO;
 import com.medilink.patient.entity.Patient;
 import com.medilink.patient.entity.RendezVous;
-import com.medilink.patient.entity.RenderVous; // Placeholder to keep line count or just remove
 // import com.medilink.patient.entity.Service; // Supprimé
 import com.medilink.patient.exception.CreneauIndisponibleException;
 import com.medilink.patient.exception.PatientNotFoundException;
@@ -29,6 +28,7 @@ import java.util.stream.Collectors;
 @org.springframework.stereotype.Service
 @RequiredArgsConstructor
 @Transactional
+@SuppressWarnings({"null", "unchecked"})
 public class RendezVousService {
 
     private final RendezVousRepository rendezVousRepository;
@@ -98,7 +98,6 @@ public class RendezVousService {
         List<RendezVous> rendezVousList = rendezVousRepository.findByPatientId(patientId);
 
         return rendezVousList.stream()
-        return rendezVousList.stream()
                 .map(this::toFullResponseDTO)
                 .collect(Collectors.toList());
     }
@@ -110,7 +109,6 @@ public class RendezVousService {
     public List<RendezVousResponseDTO> obtenirRendezVousMedecin(Long medecinId) {
         List<RendezVous> rendezVousList = rendezVousRepository.findByMedecinId(medecinId);
 
-        return rendezVousList.stream()
         return rendezVousList.stream()
                 .map(this::toFullResponseDTO)
                 .collect(Collectors.toList());

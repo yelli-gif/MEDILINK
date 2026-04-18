@@ -1,14 +1,14 @@
 package com.medilink.lot4.service;
 
-import com.medilink.lot4.dto.CreateMedecinDTO;
+
 import com.medilink.lot4.dto.OrdonnanceDTO;
 import com.medilink.lot4.dto.LigneOrdonnanceDTO;
 import com.medilink.lot4.entity.LigneOrdonnance;
-import com.medilink.lot4.entity.Medecin;
+
 import com.medilink.lot4.entity.Ordonnance;
 import com.medilink.lot4.enums.StatutOrdonnance;
 import com.medilink.lot4.repository.LigneOrdonnanceRepository;
-import com.medilink.lot4.repository.LigneOrdonnanceRepository;
+
 import com.medilink.lot4.repository.OrdonnanceRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

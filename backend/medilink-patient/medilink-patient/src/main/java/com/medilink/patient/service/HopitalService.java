@@ -1,6 +1,5 @@
 package com.medilink.patient.service;
 
-import com.medilink.patient.dto.HopitalDTO;
 import com.medilink.patient.dto.HopitalResponseDTO;
 import com.medilink.patient.entity.Hopital;
 import com.medilink.patient.exception.HopitalNotFoundException;
@@ -22,6 +21,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@SuppressWarnings("null")
 public class HopitalService {
 
     private final HopitalRepository hopitalRepository;

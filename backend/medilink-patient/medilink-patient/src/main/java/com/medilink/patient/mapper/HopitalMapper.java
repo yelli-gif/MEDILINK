@@ -3,7 +3,6 @@ package com.medilink.patient.mapper;
 import com.medilink.patient.dto.HopitalDTO;
 import com.medilink.patient.dto.HopitalResponseDTO;
 import com.medilink.patient.entity.Hopital;
-import com.medilink.patient.entity.Service;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;

@@ -1,5 +1,5 @@
 package com.medilink.lot5.controller;
-import com.medilink.lot5.service.PharmacieService;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -8,8 +8,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/pharmacien")
 @RequiredArgsConstructor
 public class PharmacienController {
-    private final PharmacieService pharmacieService;
-
+    // private final PharmacieService pharmacieService; // Removed unused
     @GetMapping("/demandes")
     public ResponseEntity<?> getDemandes() {
         return ResponseEntity.ok("Liste demandes");

@@ -13,6 +13,7 @@ public class Lot2Client {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
+    @SuppressWarnings("unchecked")
     public Map<String, Object> getRendezVousById(Long id) {
         try {
             return restTemplate.getForObject(lot2Url + "/api/rendezvous/" + id, Map.class);
