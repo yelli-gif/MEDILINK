@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 interface NavItem {
@@ -10,6 +10,32 @@ interface NavItem {
 export default function SidebarPharmacie(): React.JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
+
+  // État local pré-configuré pour s'adapter au travail du collègue (Authentification)
+  const [userProfile, setUserProfile] = useState({
+    name: 'Dr. Julian Vance',
+    role: 'Pharmacien Chef',
+    avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDeQOZNWsTf-6E9sCIn-nihM4azUkSoTdlH71mUOXdQnBdC5qXukWzq8Zxf1_4pmzrWCrgyrgh9vXd1bwM97FE9YSz5uRBIZ5aaigewqRoRgpAN-x_zvC9OMy-fLW77QxDRRCvhDMzb8c_q1bCHmQobYx6xuFzQ3NGXDLrY1ZFjy2xYtoq5pnjVLPCIKOgMnCsYYRS7J7uWuelCqpdTbgldRV-mm8zWI3Bsb7o7kyP5YAOHUtEWQJXJssHOM3GfVCgdezkRDDwG52w'
+  });
+
+  // Listener pour récupérer les informations de l'utilisateur stockées par le collègue
+  useEffect(() => {
+    // Le collègue pourra sauvegarder l'utilisateur sous la clé 'medilink_user' lors du login
+    const storedUser = localStorage.getItem('medilink_user');
+    if (storedUser) {
+      try {
+        const parsed = JSON.parse(storedUser);
+        setUserProfile((prev) => ({
+          ...prev,
+          name: parsed.name || prev.name,
+          role: parsed.role || prev.role,
+          avatarUrl: parsed.avatarUrl || prev.avatarUrl
+        }));
+      } catch (err) {
+        console.error("Erreur de parsing JSON pour l'utilisateur", err);
+      }
+    }
+  }, []);
 
   const navItems: NavItem[] = [
     { path: '/pharmacie/dashboard', icon: 'dashboard', label: "Vue d'ensemble" },
@@ -47,12 +73,12 @@ export default function SidebarPharmacie(): React.JSX.Element {
 
         <div className="mt-auto p-4 bg-slate-50 rounded-[24px] flex items-center gap-3 border border-slate-100/50">
           <div className="relative">
-             <img alt="Profil" className="w-10 h-10 rounded-full object-cover shadow-md" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDeQOZNWsTf-6E9sCIn-nihM4azUkSoTdlH71mUOXdQnBdC5qXukWzq8Zxf1_4pmzrWCrgyrgh9vXd1bwM97FE9YSz5uRBIZ5aaigewqRoRgpAN-x_zvC9OMy-fLW77QxDRRCvhDMzb8c_q1bCHmQobYx6xuFzQ3NGXDLrY1ZFjy2xYtoq5pnjVLPCIKOgMnCsYYRS7J7uWuelCqpdTbgldRV-mm8zWI3Bsb7o7kyP5YAOHUtEWQJXJssHOM3GfVCgdezkRDDwG52w"/>
+             <img alt="Profil" className="w-10 h-10 rounded-full object-cover shadow-md" src={userProfile.avatarUrl} />
              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full shadow-sm"></div>
           </div>
           <div className="overflow-hidden">
-            <p className="text-xs font-black truncate text-slate-900 tracking-tight">Dr. Julian Vance</p>
-            <p className="text-[10px] text-slate-400 truncate font-bold uppercase tracking-widest">Pharmacien Chef</p>
+            <p className="text-xs font-black truncate text-slate-900 tracking-tight">{userProfile.name}</p>
+            <p className="text-[10px] text-slate-400 truncate font-bold uppercase tracking-widest">{userProfile.role}</p>
           </div>
         </div>
     </aside>
