@@ -1,0 +1,246 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-on-primary: #ffffff;
+  --color-inverse-surface: #2e303a;
+  --color-surface-bright: #faf8ff;
+  --color-surface-container-lowest: #ffffff;
+  --color-primary: #0050cb;
+  --color-background: #faf8ff;
+  --color-secondary-fixed: #d5e6e4;
+  --color-inverse-on-surface: #eff0fd;
+  --color-on-tertiary-container: #fff6f4;
+  --color-primary-fixed-dim: #b3c5ff;
+  --color-surface-container-low: #f2f3ff;
+  --color-surface-container-high: #e6e7f4;
+  --color-secondary-fixed-dim: #b9cac8;
+  --color-on-surface: #191b24;
+  --color-on-error: #ffffff;
+  --color-surface-tint: #0054d6;
+  --color-on-secondary-fixed-variant: #3a4a49;
+  --color-primary-fixed: #dae1ff;
+  --color-on-background: #191b24;
+  --color-tertiary-container: #cc4204;
+  --color-on-error-container: #93000a;
+  --color-outline: #727687;
+  --color-tertiary: #a33200;
+  --color-on-tertiary-fixed-variant: #832600;
+  --color-on-tertiary: #ffffff;
+  --color-on-primary-container: #f8f7ff;
+  --color-primary-container: #0066ff;
+  --color-on-tertiary-fixed: #390c00;
+  --color-outline-variant: #c2c6d8;
+  --color-error: #ba1a1a;
+  --color-error-container: #ffdad6;
+  --color-surface-variant: #e1e2ee;
+  --color-secondary-container: #d5e6e4;
+  --color-on-surface-variant: #424656;
+  --color-on-secondary-container: #586766;
+  --color-surface: #faf8ff;
+  --color-on-primary-fixed-variant: #003fa4;
+  --color-inverse-primary: #b3c5ff;
+  --color-surface-dim: #d8d9e6;
+  --color-secondary: #526160;
+  --color-on-secondary: #ffffff;
+  --color-surface-container: #ecedfa;
+  --color-surface-container-highest: #e1e2ee;
+  --color-tertiary-fixed: #ffdbd0;
+  --color-on-primary-fixed: #001849;
+  --color-tertiary-fixed-dim: #ffb59d;
+  --color-on-secondary-fixed: #0f1e1d;
+
+  --font-headline: Manrope, sans-serif;
+  --font-body: Inter, sans-serif;
+  --font-label: Inter, sans-serif;
+  
+  --color-clinical-primary: #0066FF;
+  --color-clinical-primary-dark: #0052CC;
+  --color-clinical-primary-10: #E6EDFF;
+  --color-clinical-bg: #FAFBFF;
+  --color-clinical-surface: #FFFFFF;
+  --color-clinical-surface-hover: #F0F4FF;
+  --color-clinical-text-dark: #191B24;
+  --color-clinical-text-muted: #586766;
+  --color-clinical-border: #E1E6F0;
+  --shadow-clinical: 0 10px 30px rgba(0, 102, 255, 0.05);
+}
+
+@layer base {
+  body {
+    margin: 0;
+    font-family: var(--font-body), system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    /* From Admin */
+    background: linear-gradient(-45deg, #f8f9fa, #f5f7fa, #f0f3f8, #ffffff);
+    background-size: 400% 400%;
+    animation: mesh-flow 25s ease infinite;
+    min-height: 100vh;
+    color: #1A1C20;
+  }
+}
+
+@layer utilities {
+  .size-full {
+    width: 100%;
+    height: 100%;
+  }
+
+  .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      line-height: 1;
+      text-transform: none;
+      letter-spacing: normal;
+      word-wrap: normal;
+      white-space: nowrap;
+      direction: ltr;
+  }
+
+  .signature-gradient {background: linear-gradient(135deg, #0050cb 0%, #0066ff 100%);}
+  .bg-signature-gradient {background: linear-gradient(135deg, #0050cb 0%, #0066ff 100%);}
+  .glass-header {background: rgba(250, 248, 255, 0.6); backdrop-filter: blur(20px);}
+  .glass-nav {background: rgba(250, 248, 255, 0.7); backdrop-filter: blur(20px);}
+  .text-editorial-spacing {letter-spacing: -0.02em;}
+
+  .delay-100 { animation-delay: 100ms; }
+  .delay-200 { animation-delay: 200ms; }
+  .delay-300 { animation-delay: 300ms; }
+  .delay-400 { animation-delay: 400ms; }
+
+  .focus-glow {
+    @apply transition-all duration-300 focus:bg-white focus:border-[#0B56FA]/30 outline-none;
+    box-shadow: 0 0 45px -5px rgba(11,86,250,0.18);
+  }
+
+  .mesh-background {
+    background: linear-gradient(-45deg, #f8f9fa, #f5f7fa, #f0f3f8, #ffffff);
+    background-size: 400% 400%;
+    animation: mesh-flow 25s ease infinite;
+  }
+
+  .hover-lift {
+    @apply transition-all duration-500 hover:-translate-y-1.5;
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.08);
+  }
+
+  .card-active-glow {
+    @apply transition-all duration-500 border border-gray-100/60;
+  }
+  .card-active-glow:focus-within {
+    @apply bg-[#F4F8FF] border-[#0B56FA]/20 -translate-y-1 z-10 relative;
+    box-shadow: 0 30px 70px -15px rgba(11,86,250,0.12);
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Tailind-like animation utilities */
+  .animate-in {
+    animation-duration: 300ms;
+    animation-fill-mode: forwards;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .slide-in-from-right {
+    animation-name: slide-in-from-right;
+  }
+  .zoom-in-95 {
+    animation-name: zoom-in-95;
+  }
+  .duration-200 { animation-duration: 200ms; }
+  .duration-300 { animation-duration: 300ms; }
+}
+
+/* Animations */
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes reveal-stagger {
+  from { opacity: 0; transform: translateY(40px) scale(0.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes scale-in-soft {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+@keyframes mesh-flow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes slide-in-from-right {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes zoom-in-95 {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Print Styles */
+@media print {
+  .print-hidden,
+  aside,
+  header,
+  nav,
+  button,
+  .success-overlay {
+    display: none !important;
+  }
+  
+  .md\:ml-64 {
+    margin-left: 0 !important;
+  }
+  
+  body, 
+  .bg-\[#f8fafb\], 
+  .bg-background, 
+  main, 
+  .printable-area {
+    background-color: white !important;
+  }
+  
+  .printable-area {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  
+  .printable-title h2 {
+    font-size: 2.5rem !important;
+    color: black !important;
+  }
+  
+  section {
+    box-shadow: none !important;
+    border: 1px solid #f1f5f9 !important;
+    break-inside: avoid;
+  }
+}
+
+/* Dark Mode Global Hack */
+html.dark {
+  filter: invert(0.9) hue-rotate(180deg);
+  background-color: #f8f9fa; /* will be inverted to very dark */
+}
+
+html.dark img, 
+html.dark [style*="background-image"] {
+  filter: invert(1) hue-rotate(180deg);
+}

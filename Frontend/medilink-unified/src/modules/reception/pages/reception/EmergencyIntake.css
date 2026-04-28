@@ -1,0 +1,601 @@
+/* EmergencyIntake.css - Hospital Intake UI */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+.app-shell {
+  display: flex;
+  height: 100vh;
+  background: #f8fafc;
+  font-family: 'Inter', sans-serif;
+  color: #1e293b;
+}
+
+/* ── Sidebar (Consistent with Medilink Design) ── */
+.sidebar {
+  width: 220px;
+  min-width: 220px;
+  background: #ffffff;
+  border-right: 1px solid #e8eaf0;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 0 20px;
+}
+
+.sidebar__brand {
+  padding: 0 20px 28px;
+  border-bottom: 1px solid #f0f2f8;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.brand-logo {
+  width: 38px;
+  height: 38px;
+  background: #2563eb;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-name {
+  font-size: 21px;
+  font-weight: 700;
+  color: #2563eb;
+  letter-spacing: -0.3px;
+  line-height: 1;
+}
+
+.brand-sub {
+  font-size: 9px;
+  font-weight: 600;
+  color: #94a3b8;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+
+.sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 20px 12px;
+  flex: 1;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748b;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.nav-item:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+.nav-item--active {
+  background: #f1f5f9;
+  color: #1e293b;
+  font-weight: 600;
+  position: relative;
+}
+
+.nav-item--active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 15%;
+  height: 70%;
+  width: 3px;
+  background: #2563eb;
+  border-radius: 0 4px 4px 0;
+}
+
+.sidebar__emergency {
+  padding: 0 16px 20px;
+}
+
+.btn-emergency {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  background: #2563eb;
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+}
+
+.btn-emergency:hover {
+  background: #005ce6;
+  transform: translateY(-2px);
+}
+
+.btn-emergency--active {
+  background: #0066ff;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #0066ff;
+}
+
+.sidebar__footer {
+  padding: 12px 12px 0;
+  border-top: 1px solid #f0f2f8;
+}
+
+.sidebar__footer-box {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.footer-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.footer-link:hover {
+  background: #fff;
+  color: #1e293b;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.footer-link svg {
+  color: #94a3b8;
+}
+
+.footer-link:hover svg {
+  color: #2563eb;
+}
+
+/* ── Main Layout ── */
+.hi-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background: #f8fafc;
+}
+
+/* ── Topbar ── */
+.hi-topbar {
+  padding: 14px 32px;
+  background: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #e8eaf0;
+}
+
+.hi-topbar__date {
+  font-size: 14px;
+  font-weight: 500;
+  color: #2563eb;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hi-topbar__search {
+  flex: 1;
+  max-width: 440px;
+  margin: 0 40px;
+  position: relative;
+}
+
+.hi-topbar__search svg {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+}
+
+.hi-topbar__search input {
+  width: 100%;
+  padding: 11px 16px 11px 48px;
+  background: #f1f5f9;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  font-family: inherit;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.hi-topbar__search input:focus {
+  background: #fff;
+  border-color: #2563eb;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08);
+  outline: none;
+}
+
+.hi-topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.hi-user-avatar {
+  width: 36px;
+  height: 36px;
+  background: #d1d5db;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 4px solid #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+/* ── Page Body ── */
+.hi-page-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 32px 0;
+}
+
+.hi-header {
+  margin-bottom: 24px;
+}
+
+.hi-title {
+  font-size: 30px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 6px;
+  letter-spacing: -0.5px;
+}
+
+.hi-title-hl {
+  color: #0066ff;
+}
+
+.hi-subtitle {
+  font-size: 14px;
+  color: #64748b;
+}
+
+/* ── Grid Layout ── */
+.hi-layout {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 40px;
+}
+
+.hi-left-col, .hi-right-col {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* ── Cards ── */
+.hi-card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 12px 16px;
+  border: 1px solid #e8eaf0;
+}
+
+.hi-card-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.hi-card-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.hi-icon-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hi-icon-box--blue {
+  background: #eff6ff;
+  color: #0066ff;
+}
+
+.hi-icon-box--blue-light {
+  background: #f0f4ff;
+  color: #3b82f6;
+}
+
+/* ── Registration Form ── */
+.hi-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.hi-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.hi-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hi-form-group label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.hi-form-group input, .hi-select-wrap select {
+  width: 100%;
+  padding: 12px 16px;
+  background: #f1f5f9;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: inherit;
+  color: #1e293b;
+  transition: all 0.2s;
+}
+
+.hi-form-group input:focus, .hi-select-wrap select:focus {
+  background: #fff;
+  border-color: #0066ff;
+  box-shadow: 0 0 0 4px rgba(0, 102, 255, 0.1);
+  outline: none;
+}
+
+.hi-select-wrap {
+  position: relative;
+}
+
+.hi-select-wrap select {
+  appearance: none;
+  cursor: pointer;
+}
+
+.hi-select-wrap svg {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #64748b;
+}
+
+.hi-btn-submit {
+  margin-top: 12px;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  padding: 12px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.hi-btn-submit:hover {
+  background: #005ce6;
+  transform: translateY(-2px);
+  box-shadow: 0 15px 30px rgba(0, 102, 255, 0.35);
+}
+
+/* ── Protocol Reminder ── */
+.hi-protocol {
+  background: #0066ff;
+  color: #fff;
+  padding: 24px;
+}
+
+.hi-protocol-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.hi-protocol-text {
+  font-size: 15px;
+  line-height: 1.6;
+  opacity: 0.9;
+  margin-bottom: 24px;
+}
+
+.hi-protocol-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,0.1);
+  padding: 8px 16px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* ── Live Queue Status ── */
+.hi-queue-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hi-queue-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 20px;
+  background: #f8fafc;
+  border-radius: 12px;
+}
+
+.hi-queue-item__left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hi-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.hi-queue-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.hi-queue-wait {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+/* ── Recently Registered ── */
+.hi-history {
+  padding: 20px;
+}
+
+.hi-history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.hi-history-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.hi-history-link {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0066ff;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.hi-table-container {
+  background: #fff;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+}
+
+.hi-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.hi-table th {
+  text-align: left;
+  padding: 10px 24px;
+  background: #f8fafc;
+  color: #94a3b8;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.hi-table td {
+  padding: 20px 24px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.hi-td-patient {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.hi-dept-badge {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 8px;
+}
+
+.hi-dept-badge--urgences { background: #dcfce7; color: #166534; }
+.hi-dept-badge--consultation { background: #f1f5f9; color: #475569; }
+
+.hi-td-time {
+  font-size: 14px;
+  color: #64748b;
+  font-weight: 500;
+}
+/* ── Success Feedback ── */
+.hi-success-banner {
+  margin-top: 20px;
+  padding: 16px;
+  background: #dcfce7;
+  color: #166534;
+  border-radius: 12px;
+  font-size: 14px;
+  text-align: center;
+  border: 1px solid #bbf7d0;
+  animation: slideInUp 0.3s ease-out;
+}
+
+@keyframes slideInUp {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
