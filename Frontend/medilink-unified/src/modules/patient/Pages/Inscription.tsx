@@ -61,8 +61,7 @@ const Inscription: React.FC = () => {
       await authAPI.register({
         email: formData.email,
         motDePasse: formData.password,
-        // Les patients n'ont pas de rôle dans la table users du Lot 1
-        // Ils sont gérés séparément dans le Lot 2
+        role: 'PATIENT'
       });
 
       // 2. Créer le profil patient dans le backend (Lot 2 - port 8082)
