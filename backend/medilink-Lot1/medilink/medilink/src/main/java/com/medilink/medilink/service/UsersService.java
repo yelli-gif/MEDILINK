@@ -39,7 +39,10 @@ public class UsersService {
         // On hache le mot de passe pour la sécurité
         utilisateur.setMotDePasse(passwordEncoder.encode(utilisateur.getMotDePasse()));
 
-
+        // Sécurité : Si aucun rôle n'est fourni (ex: via Inscription Patient), on met PATIENT par défaut
+        if (utilisateur.getRole() == null) {
+            utilisateur.setRole(com.medilink.medilink.model.Role.PATIENT);
+        }
 
         return usersRepository.save(utilisateur);
     }
