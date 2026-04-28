@@ -41,7 +41,10 @@ public class UsersService {
 
         // Sécurité : Si aucun rôle n'est fourni (ex: via Inscription Patient), on met PATIENT par défaut
         if (utilisateur.getRole() == null) {
+            System.out.println("DEBUG: Role was null, setting to PATIENT");
             utilisateur.setRole(com.medilink.medilink.model.Role.PATIENT);
+        } else {
+            System.out.println("DEBUG: Role provided: " + utilisateur.getRole());
         }
 
         return usersRepository.save(utilisateur);
