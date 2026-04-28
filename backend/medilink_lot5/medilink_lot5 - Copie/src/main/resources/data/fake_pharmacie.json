@@ -1,0 +1,37 @@
+{
+  "pharmacie": [
+    {
+      "nom": "Pharmacie du Plateau",
+      "localisation": {
+        "latitude": 5.3599517,
+        "longitude": -4.0082563
+      },
+      "adresse": "Avenue Chardy, Plateau, Abidjan",
+      "pharmacien": {
+        "nom": "Kouassi Marie"
+      }
+    },
+    {
+      "nom": "Pharmacie de Cocody",
+      "localisation": {
+        "latitude": 5.3484384,
+        "longitude": -4.0265579
+      },
+      "adresse": "Boulevard VGE, Cocody, Abidjan",
+      "pharmacien": {
+        "nom": "Traoré Fatou"
+      }
+    },
+    {
+      "nom": "Pharmacie de Marcory",
+      "localisation": {
+        "latitude": 5.3205394,
+        "longitude": -4.0159823
+      },
+      "adresse": "Rue des Jardins, Marcory, Abidjan",
+      "pharmacien": {
+        "nom": "Bamba Mariam"
+      }
+    }
+  ]
+}
