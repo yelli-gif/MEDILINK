@@ -41,6 +41,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/services", "/api/services/**").permitAll()
                 .requestMatchers("/api/medicaments", "/api/medicaments/**").permitAll()
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()
+                .requestMatchers("/error").permitAll()
 
                 // Routes réservées à l'ADMIN
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
