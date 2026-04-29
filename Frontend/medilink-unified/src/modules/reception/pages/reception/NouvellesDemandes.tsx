@@ -1,9 +1,15 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { rendezVousAPI, accueilAPI } from '../../../../services/api'
 import './NouvellesDemandes.css'
 
 // ── Icônes ───────────────────────────────────────────────────────────────────
 
+const IconSearch = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+  </svg>
+)
 const IconDashboard = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" />
@@ -15,7 +21,7 @@ const IconPlus = () => (
     <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="16" /><line x1="8" y1="12" x2="16" y2="12" />
   </svg>
 )
-const IconClock = () => (
+const IconQueue = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
   </svg>
@@ -37,13 +43,9 @@ const IconSettings = () => (
 )
 const IconSupport = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="4" /><line x1="4.93" y1="4.93" x2="9.17" y2="9.17" /><line x1="14.83" y1="14.83" x2="19.07" y2="19.07" /><line x1="14.83" y1="9.17" x2="19.07" y2="4.93" /><line x1="4.93" y1="19.07" x2="9.17" y2="14.83" />
-  </svg>
-)
-
-const IconSearch = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+    <circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="4" />
+    <line x1="4.93" y1="4.93" x2="9.17" y2="9.17" /><line x1="14.83" y1="14.83" x2="19.07" y2="19.07" />
+    <line x1="14.83" y1="9.17" x2="19.07" y2="4.93" /><line x1="4.93" y1="19.07" x2="9.17" y2="14.83" />
   </svg>
 )
 const IconBell = () => (
@@ -56,111 +58,127 @@ const IconHelp = () => (
     <circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><line x1="12" y1="17" x2="12.01" y2="17" />
   </svg>
 )
-const IconMore = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="5" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="12" cy="19" r="1.5" />
-  </svg>
-)
-const IconPrint = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="6 9 6 2 18 2 18 9" /><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
-    <rect x="6" y="14" width="12" height="8" />
-  </svg>
-)
-const IconX = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-  </svg>
-)
-// -- Unused icons removed --
-
-// ── Types ─────────────────────────────────────────────────────────────────────
-
-type Priority = 'urgent' | 'standard'
-type Request = {
-  id: string
-  name: string
-  service: string
-  time: string
-  notes: string
-  priority: Priority
-  avatar?: string
-}
-
-// ── Données ───────────────────────────────────────────────────────────────────
 
 const navItems = [
   { id: 'dashboard', label: 'Tableau de bord', icon: <IconDashboard /> },
   { id: 'new-requests', label: 'Nouvelles demandes', icon: <IconPlus /> },
-  { id: 'waiting-queues', label: 'Files d\'attente', icon: <IconClock /> },
+  { id: 'waiting-queues', label: 'Files d\'attente', icon: <IconQueue /> },
   { id: 'ticket-verification', label: 'Vérif. tickets', icon: <IconTicket /> },
   { id: 'history', label: 'Historique', icon: <IconHistory /> },
 ]
 
-const requests: Request[] = [
-  {
-    id: '1', name: 'James McAvoy', service: 'Cardiologie', time: '10:42',
-    notes: 'Douleur thoracique, essoufflement, antécédents chirurgicaux...', priority: 'urgent',
-  },
-  {
-    id: '2', name: 'Elena Rodriguez', service: 'Dermatologie', time: '10:55',
-    notes: 'Éruption cutanée sévère, allergie suspectée aux médicaments...', priority: 'standard',
-    avatar: 'https://i.pravatar.cc/36?img=5',
-  },
-  {
-    id: '3', name: 'Marcus Thorne', service: 'Médecine Générale', time: '11:02',
-    notes: 'Renouvellement d\'ordonnance et contrôle de tension...', priority: 'standard',
-  },
-]
+// ── Types ────────────────────────────────────────────────────────────────────
 
-const latestTicket = {
-  name: 'Sarah Jenkins',
-  ticket: '#772-B',
-  service: 'Cardiologie',
-  floor: 'Niveau 3, Est',
-  queue: '#04',
-  generatedAgo: 'il y a 2 min',
+type Request = {
+  id: string
+  patientName: string
+  urgency: 'urgent' | 'normal'
+  serviceId: number
+  serviceName: string
+  time: string
+  description: string
+  rendezVousId: number
 }
 
-// ── Rendu Ticket (Code QR) ────────────────────────────────────────────────────
+// ── Composants internes ──────────────────────────────────────────────────────
 
-const TicketVisualSVG = () => (
-  <svg width="84" height="84" viewBox="0 0 84 84" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect width="84" height="84" rx="8" fill="white" />
-    <path d="M12 12H30V30H12V12ZM16 16V26H26V16H16Z" fill="#1e293b" />
-    <rect x="19" y="19" width="4" height="4" fill="#1e293b" />
-    <path d="M54 12H72V30H54V12ZM58 16V26H68V16H58Z" fill="#1e293b" />
-    <rect x="61" y="19" width="4" height="4" fill="#1e293b" />
-    <path d="M12 54H30V72H12V54ZM16 58V68H26V58H16Z" fill="#1e293b" />
-    <rect x="19" y="61" width="4" height="4" fill="#1e293b" />
-    <rect x="38" y="12" width="8" height="8" fill="#1e293b" />
-    <rect x="38" y="26" width="4" height="4" fill="#1e293b" />
-    <rect x="46" y="19" width="4" height="4" fill="#1e293b" />
-    <rect x="38" y="38" width="8" height="8" fill="#1e293b" />
-    <rect x="54" y="38" width="4" height="4" fill="#1e293b" />
-    <rect x="64" y="38" width="8" height="4" fill="#1e293b" />
-    <rect x="12" y="38" width="8" height="4" fill="#1e293b" />
-    <rect x="25" y="38" width="4" height="4" fill="#1e293b" />
-    <rect x="46" y="54" width="4" height="18" fill="#1e293b" />
-    <rect x="54" y="54" width="18" height="4" fill="#1e293b" />
-    <rect x="54" y="64" width="8" height="8" fill="#1e293b" />
-    <rect x="68" y="68" width="4" height="4" fill="#1e293b" />
-  </svg>
-)
+function StatCard({ label, value, sub, subColor, badge }: { label: string; value: string; sub?: string; subColor?: string; badge?: string }) {
+  return (
+    <div className="hi-stat-card">
+      <div className="hi-stat-card__label">
+        {label}
+        {badge && <span className="hi-stat-card__badge">{badge}</span>}
+      </div>
+      <div className="hi-stat-card__value">{value}</div>
+      {sub && <div className="hi-stat-card__sub" style={{ color: subColor }}>{sub}</div>}
+    </div>
+  )
+}
 
 // ── Composant Principal ───────────────────────────────────────────────────────
 
 export default function NewRequests() {
+  const [activeNav, setActiveNav] = useState('new-requests')
   const [search, setSearch] = useState('')
-  const [sortBy, setSortBy] = useState<'priority' | 'time'>('priority')
-  const [showModal, setShowModal] = useState(false)
-  const [validatedReq, setValidatedReq] = useState<Request | null>(null)
+  const [requests, setRequests] = useState<Request[]>([])
+  const [loading, setLoading] = useState(true)
   const [isValidating, setIsValidating] = useState<string | null>(null)
-  const [activeMenu, setActiveMenu] = useState<string | null>(null)
-  const [ticketTime, setTicketTime] = useState('il y a 2 min')
-  const [selectedDate, setSelectedDate] = useState('2023-10-24')
+  const [lastTicket, setLastTicket] = useState<any>(null)
+  const [userProfile, setUserProfile] = useState<any>(null)
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
   
   const navigate = useNavigate()
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('medilink_user')
+    if (storedUser) {
+      const parsed = JSON.parse(storedUser)
+      setUserProfile(parsed)
+      
+      const hId = parsed.hopitalId || parsed.medecinId || parsed.personnelId || parsed.id;
+      if (hId) {
+        fetchAppointments(parseInt(hId.toString()))
+      } else {
+        setLoading(false)
+      }
+    } else {
+      setLoading(false)
+    }
+  }, [])
+
+  const fetchAppointments = async (hopitalId: number) => {
+    try {
+      setLoading(true)
+      const data = await rendezVousAPI.parHopital(hopitalId)
+      
+      // On filtre pour ne garder que les RDV du jour
+      const today = new Date().toISOString().split('T')[0]
+      const mapped: Request[] = data
+        .filter((rdv: any) => rdv.date === today)
+        .map((rdv: any) => ({
+          id: rdv.id.toString(),
+          patientName: rdv.patient ? `${rdv.patient.prenom} ${rdv.patient.nom}` : 'Patient Inconnu',
+          urgency: rdv.description?.toLowerCase().includes('urgent') ? 'urgent' : 'normal',
+          serviceId: rdv.service?.id || 0,
+          serviceName: rdv.service?.nom || 'Service Inconnu',
+          time: rdv.heure.substring(0, 5),
+          description: rdv.description || 'Consultation planifiée',
+          rendezVousId: rdv.id
+        }))
+      setRequests(mapped)
+    } catch (err) {
+      console.error('Erreur fetch RDV:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleValidate = async (request: Request) => {
+    setIsValidating(request.id)
+    try {
+      // Appel API pour marquer l'arrivée et générer le ticket
+      const ticket = await accueilAPI.arriveePatient(request.rendezVousId, request.serviceId)
+      setLastTicket({
+        ...ticket,
+        patientName: request.patientName,
+        serviceName: request.serviceName,
+        time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+      })
+      
+      // Retirer de la liste
+      setRequests(prev => prev.filter(r => r.id !== request.id))
+    } catch (err) {
+      console.error('Erreur validation:', err)
+      alert('Erreur lors de la validation du patient.')
+    } finally {
+      setIsValidating(null)
+    }
+  }
+
+  const filtered = requests.filter(r => 
+    r.patientName.toLowerCase().includes(search.toLowerCase()) ||
+    r.serviceName.toLowerCase().includes(search.toLowerCase())
+  )
 
   const formatDate = (dateStr: string) => {
     const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long', year: 'numeric' }
@@ -175,25 +193,8 @@ export default function NewRequests() {
     if (id === 'history') navigate('/reception/history')
   }
 
-  const handleValidate = (req: Request) => {
-    setIsValidating(req.id)
-    // Simulation d'un délai de validation
-    setTimeout(() => {
-      setIsValidating(null)
-      setValidatedReq(req)
-      setTicketTime('À l\'instant')
-      setShowModal(true)
-    }, 800)
-  }
-
-  const sorted = [...requests].sort((a, b) => {
-    if (sortBy === 'priority') return a.priority === 'urgent' ? -1 : 1
-    return a.time.localeCompare(b.time)
-  })
-
   return (
     <div className="hi-app-shell">
-      {/* ── Barre latérale ── */}
       <aside className="hi-sidebar">
         <div className="hi-sidebar__brand">
           <div className="hi-brand-logo">
@@ -211,7 +212,7 @@ export default function NewRequests() {
           {navItems.map((item) => (
             <button
               key={item.id}
-              className={`hi-nav-item ${item.id === 'new-requests' ? 'hi-nav-item--active' : ''}`}
+              className={`hi-nav-item ${activeNav === item.id ? 'hi-nav-item--active' : ''}`}
               onClick={() => handleNav(item.id)}
             >
               <span className="hi-nav-item__icon">{item.icon}</span>
@@ -227,7 +228,7 @@ export default function NewRequests() {
         </div>
 
         <div className="hi-sidebar__footer">
-          <div className="hi-footer-box">
+          <div className="hi-sidebar__footer-box">
             <button className="hi-footer-link" onClick={() => navigate('/reception/settings')}>
               <IconSettings /> <span>Paramètres</span>
             </button>
@@ -238,16 +239,14 @@ export default function NewRequests() {
         </div>
       </aside>
 
-      {/* ── Contenu Principal ── */}
-      <main className="hi-main">
-        {/* Topbar */}
+      <main className="hi-main-content">
         <header className="hi-topbar">
-          <div className="hi-topbar-date" style={{ position: 'relative', cursor: 'pointer' }}>
-            <span onClick={() => (document.getElementById('requests-date-picker') as HTMLInputElement)?.showPicker()}>
+          <div className="hi-topbar__date" style={{ position: 'relative', cursor: 'pointer' }}>
+            <span onClick={() => (document.getElementById('nd-date-picker') as HTMLInputElement)?.showPicker()}>
               {formatDate(selectedDate)}
             </span>
             <input 
-              id="requests-date-picker"
+              id="nd-date-picker"
               type="date" 
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
@@ -265,7 +264,7 @@ export default function NewRequests() {
             <IconSearch />
             <input
               type="text"
-              placeholder="Rechercher un patient ou une demande..."
+              placeholder="Rechercher un dossier patient..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -275,223 +274,135 @@ export default function NewRequests() {
             <button className="hi-icon-btn" onClick={() => navigate('/reception/notifications')}><IconBell /></button>
             <button className="hi-icon-btn" onClick={() => navigate('/reception/help')}><IconHelp /></button>
             <div className="hi-topbar__divider" />
-            <div className="hi-user-info">
-              <span className="hi-user-name">Jean Dupont</span>
-              <span className="hi-user-role">Réceptionniste</span>
+            <div className="hi-topbar__user" onClick={() => navigate('/connexion')} style={{ cursor: 'pointer' }}>
+              <div className="hi-topbar__user-info">
+                <span className="hi-user-name">{userProfile?.name || 'Chargement...'}</span>
+                <span className="hi-user-role">Réceptionniste</span>
+              </div>
+              <div className="hi-user-avatar">{userProfile?.name?.substring(0,2).toUpperCase() || '...'}</div>
             </div>
-            <div className="hi-user-avatar">JD</div>
           </div>
         </header>
 
-        {/* Corps de la page */}
         <div className="hi-page-body">
           <div className="hi-page-header">
-            <h2 className="hi-page-title">Nouvelles Demandes</h2>
+            <h1 className="hi-page-title">Nouvelles Demandes</h1>
             <p className="hi-page-subtitle">
               Validez les demandes de services médicaux entrantes et générez les tickets patients.
             </p>
           </div>
 
-          {/* Cartes Stats */}
           <div className="hi-stats-grid">
-            <div className="hi-stat-card">
-              <span className="hi-stat-label">TOTAL EN ATTENTE</span>
-              <div className="hi-stat-content">
-                <span className="hi-stat-value">24</span>
-                <span className="hi-stat-badge hi-stat-badge--blue">+5% aujourd'hui</span>
-              </div>
-            </div>
-            <div className="hi-stat-card">
-              <span className="hi-stat-label">CAS URGENTS</span>
-              <div className="hi-stat-content">
-                <span className="hi-stat-value hi-stat-value--red">08</span>
-                <span className="hi-stat-badge hi-stat-badge--light">Action requise</span>
-              </div>
-            </div>
-            <div className="hi-stat-card">
-              <span className="hi-stat-label">FLUX STANDARD</span>
-              <div className="hi-stat-content">
-                <span className="hi-stat-value">16</span>
-                <span className="hi-stat-badge hi-stat-badge--light">Attente moy. : 12 min</span>
-              </div>
-            </div>
+            <StatCard 
+              label="TOTAL EN ATTENTE" 
+              value={String(requests.length).padStart(2, '0')} 
+              sub="Rendez-vous du jour" 
+              subColor="#3b82f6" 
+            />
+            <StatCard 
+              label="CAS URGENTS" 
+              value={String(requests.filter(r => r.urgency === 'urgent').length).padStart(2, '0')} 
+              badge={requests.filter(r => r.urgency === 'urgent').length > 0 ? "Action requise" : "Aucun"} 
+            />
+            <StatCard 
+              label="FLUX STANDARD" 
+              value={String(requests.filter(r => r.urgency === 'normal').length).padStart(2, '0')} 
+              sub="En attente de validation" 
+            />
           </div>
 
           <div className="hi-content-layout">
-            {/* Gauche : Liste des patients */}
-            <div className="hi-list-section">
+            <div className="hi-requests-list">
               <div className="hi-list-header">
-                <div>
-                  <h3 className="hi-list-title">En attente de validation</h3>
-                </div>
-                <div className="hi-sort-tabs">
-                  <button
-                    className={`hi-sort-tab ${sortBy === 'priority' ? 'hi-sort-tab--active' : ''}`}
-                    onClick={() => setSortBy('priority')}
-                  >
-                    Priorité
-                  </button>
-                  <button
-                    className={`hi-sort-tab ${sortBy === 'time' ? 'hi-sort-tab--active' : ''}`}
-                    onClick={() => setSortBy('time')}
-                  >
-                    Heure
-                  </button>
+                <h2 className="hi-section-title">En attente de validation</h2>
+                <div className="hi-list-filters">
+                   <button className="hi-filter-pill hi-filter-pill--active">Priorité</button>
+                   <button className="hi-filter-pill">Heure</button>
                 </div>
               </div>
-
-              <div className="hi-req-list">
-                {sorted.map(req => (
-                  <div key={req.id} className="hi-req-card">
-                    <div className="hi-req-card__indicator">
-                      <div className="hi-indicator-square">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                          <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
-                          <line x1="7.05" y1="7.05" x2="16.95" y2="16.95" /><line x1="16.95" y1="7.05" x2="7.05" y2="16.95" />
-                        </svg>
-                      </div>
+              
+              {loading ? (
+                <div className="hi-empty-state">
+                  <p>Chargement des demandes...</p>
+                </div>
+              ) : filtered.length === 0 ? (
+                <div className="hi-empty-state">
+                  <p>Aucune nouvelle demande pour le moment.</p>
+                </div>
+              ) : (
+                filtered.map(req => (
+                   <div key={req.id} className="hi-request-card">
+                    <div className="hi-request-card__avatar">
+                      <span>{req.patientName.substring(0, 1)}</span>
+                      {req.urgency === 'urgent' && <div className="hi-urgency-indicator" />}
                     </div>
-                    <div className="hi-req-card__body">
-                      <div className="hi-req-card__top">
-                        <span className="hi-req-name">{req.name}</span>
-                        {req.priority === 'urgent' && <span className="hi-badge-urgent">URGENT</span>}
+                    <div className="hi-request-card__info">
+                      <div className="hi-request-header">
+                        <span className="hi-request-name">{req.patientName}</span>
+                        {req.urgency === 'urgent' && <span className="hi-tag-urgent">URGENT</span>}
                       </div>
-                      <div className="hi-req-meta">
-                        {req.service} • {req.time}
+                      <div className="hi-request-meta">
+                        {req.serviceName} • {req.time}
                       </div>
-                      <div className="hi-req-notes">{req.notes}</div>
+                      <div className="hi-request-desc">{req.description}</div>
                     </div>
-                    <div className="hi-req-card__actions">
-                      <button 
-                        className={`hi-btn-validate ${isValidating === req.id ? 'hi-btn-validate--loading' : ''}`}
-                        onClick={() => handleValidate(req)}
-                        disabled={isValidating !== null}
-                      >
-                        {isValidating === req.id ? 'Validation...' : 'Valider la demande'}
-                      </button>
-                      <div className="hi-more-wrapper" style={{ position: 'relative' }}>
-                        <button className="hi-btn-more" onClick={() => setActiveMenu(activeMenu === req.id ? null : req.id)}>
-                          <IconMore />
-                        </button>
-                        {activeMenu === req.id && (
-                          <div className="hi-dropdown-menu">
-                            <button className="hi-dropdown-item">Modifier</button>
-                            <button className="hi-dropdown-item">Mettre en attente</button>
-                            <button className="hi-dropdown-item hi-dropdown-item--danger">Annuler</button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                    <button 
+                      className="hi-btn-validate" 
+                      onClick={() => handleValidate(req)}
+                      disabled={isValidating === req.id}
+                    >
+                      {isValidating === req.id ? 'Génération...' : 'Valider la demande'}
+                    </button>
+                    <button className="hi-btn-options">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                    </button>
                   </div>
-                ))}
-              </div>
+                ))
+              )}
             </div>
 
-            {/* Droite : Processus + Ticket */}
-            <div className="hi-right-section">
-              {/* Boîte Processus de validation */}
-              <div className="hi-process-box">
-                <h3 className="hi-process-title">Génération de ticket</h3>
-                <div className="hi-process-steps">
-                  <div className="hi-process-step">
-                    <span className="hi-step-number">1</span>
-                    <p>Vérifier les symptômes et l'urgence clinique du service.</p>
-                  </div>
-                  <div className="hi-process-step">
-                    <span className="hi-step-number">2</span>
-                    <p>Cliquez sur « Valider » pour générer le ticket de visite.</p>
-                  </div>
+            <div className="hi-side-panels">
+              <div className="hi-ticket-gen">
+                <h3 className="hi-panel-title">Génération de ticket</h3>
+                <div className="hi-step">
+                  <div className="hi-step-num">1</div>
+                  <p>Vérifier les symptômes et l'urgence clinique du service.</p>
+                </div>
+                <div className="hi-step">
+                  <div className="hi-step-num">2</div>
+                  <p>Cliquez sur « Valider » pour générer le ticket de visite.</p>
                 </div>
               </div>
 
-              {/* Dernier Ticket */}
-              <div className="hi-ticket-module">
-                <div className="hi-ticket-header">
-                  <span className="hi-ticket-label">DERNIER TICKET</span>
-                  <span className="hi-ticket-time">Généré {ticketTime}</span>
+              <div className="hi-last-ticket">
+                <div className="hi-last-ticket__header">
+                  <span className="hi-panel-title">DERNIER TICKET</span>
+                  {lastTicket && <span className="hi-tag-generated">Généré à {lastTicket.time}</span>}
                 </div>
-
-                <div className="hi-ticket-card">
-                  <div className="hi-ticket-qr">
-                    <TicketVisualSVG />
-                  </div>
-                  <h4 className="hi-ticket-name">{latestTicket.name}</h4>
-                  <div className="hi-ticket-meta">
-                    Ticket {latestTicket.ticket} • {latestTicket.service}
-                  </div>
-
-                  <div className="hi-ticket-details">
-                    <div className="hi-ticket-detail">
-                      <span className="hi-detail-label">ÉTAGE</span>
-                      <span className="hi-detail-value">Niveau 3, Est</span>
+                
+                {lastTicket ? (
+                  <div className="hi-ticket-preview">
+                    <div className="hi-qr-box">
+                      <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#14152A" strokeWidth="1.5">
+                        <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" />
+                        <rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" />
+                        <rect x="7" y="7" width="1" height="1" /><rect x="16" y="7" width="1" height="1" />
+                        <rect x="7" y="16" width="1" height="1" /><rect x="16" y="16" width="1" height="1" />
+                      </svg>
                     </div>
-                    <div className="hi-ticket-detail">
-                      <span className="hi-detail-label">FILE N°</span>
-                      <span className="hi-detail-value">#04</span>
-                    </div>
+                    <div className="hi-ticket-patient">{lastTicket.patientName}</div>
+                    <div className="hi-ticket-meta">Ticket #{lastTicket.numero || '772-B'} • {lastTicket.serviceName}</div>
                   </div>
-
-                  <button className="hi-btn-reprint" onClick={() => window.print()}>
-                    <IconPrint /> <span>Ré-imprimer le ticket</span>
-                  </button>
-                </div>
+                ) : (
+                  <div className="hi-ticket-placeholder">
+                    <p>Les tickets générés apparaîtront ici.</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
         </div>
       </main>
-
-      {/* ── Modale de Ticket Généré ── */}
-      {showModal && validatedReq && (
-        <div className="hi-modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="hi-modal-content" onClick={(e) => e.stopPropagation()}>
-            <button className="hi-modal-close-icon" onClick={() => setShowModal(false)}>
-              <IconX />
-            </button>
-            <div className="hi-modal-header">
-              <div className="hi-success-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-              </div>
-              <h3 className="hi-modal-title">Ticket Généré avec Succès</h3>
-              <p className="hi-modal-subtitle">Le patient a été ajouté à la file d'attente.</p>
-            </div>
-            
-            <div className="hi-ticket-preview">
-              <div className="hi-ticket-card hi-ticket-card--preview">
-                <div className="hi-ticket-qr">
-                  <TicketVisualSVG />
-                </div>
-                <h4 className="hi-ticket-name">{validatedReq.name}</h4>
-                <div className="hi-ticket-meta">
-                  Ticket #{Math.floor(Math.random() * 900) + 100}-B • {validatedReq.service}
-                </div>
-                <div className="hi-ticket-details">
-                  <div className="hi-ticket-detail">
-                    <span className="hi-detail-label">ÉTAGE</span>
-                    <span className="hi-detail-value">Niveau 2</span>
-                  </div>
-                  <div className="hi-ticket-detail">
-                    <span className="hi-detail-label">CODE</span>
-                    <span className="hi-detail-value">#{Math.floor(Math.random() * 50) + 1}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="hi-modal-actions">
-              <button className="hi-btn-print-full" onClick={() => window.print()}>
-                <IconPrint /> Imprimer le Ticket
-              </button>
-              <button className="hi-btn-close" onClick={() => setShowModal(false)}>
-                Fermer
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
-

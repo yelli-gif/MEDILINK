@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { serviceAPI } from '../../../services/api'
+import { serviceAPI } from '../../../../services/api'
 import './FilesAttente.css'
 
 const IconSearch = () => (
@@ -120,13 +120,19 @@ export default function WaitingQueues() {
 
   useEffect(() => {
     const storedUser = localStorage.getItem('medilink_user')
+    console.log('[DEBUG] FilesAttente - User from localStorage:', storedUser)
     if (storedUser) {
       const parsed = JSON.parse(storedUser)
       setUserProfile(parsed)
       
-      if (parsed.hopitalId) {
-        fetchServices(parsed.hopitalId)
+      const rawId = parsed.hopitalId || parsed.medecinId || parsed.personnelId || parsed.id;
+      const hId = rawId ? parseInt(rawId.toString()) : null;
+      console.log('[DEBUG] FilesAttente - Robust Detected HopitalId:', hId)
+
+      if (hId && !isNaN(hId)) {
+        fetchServices(hId)
       } else {
+        console.warn('[DEBUG] FilesAttente - No valid HopitalId found. User profile:', parsed)
         setLoading(false)
       }
     } else {
@@ -136,7 +142,9 @@ export default function WaitingQueues() {
 
   const fetchServices = async (hopitalId: number) => {
     try {
-      const data = await serviceAPI.listerParHopital(hopitalId)
+      console.log('[DEBUG] FilesAttente - Fetching services for HopitalId:', hopitalId)
+      const data = await serviceAPI.listerTous(hopitalId)
+      console.log('[DEBUG] FilesAttente - Services received:', data)
       const mapped: Department[] = data.map((s: any, idx: number) => ({
         id: s.id.toString(),
         name: s.nom,

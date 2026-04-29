@@ -218,6 +218,9 @@ export const rendezVousAPI = {
   parMedecin: (medecinId: number) =>
     apiFetch<any[]>(`${API.LOT2}/api/rendez-vous/medecin/${medecinId}`),
 
+  parHopital: (hopitalId: number) =>
+    apiFetch<any[]>(`${API.LOT2}/api/rendez-vous/hopital/${hopitalId}`),
+
   annuler: (id: number) =>
     apiFetch<void>(`${API.LOT2}/api/rendez-vous/${id}`, { method: 'DELETE' }),
 };

@@ -1,11 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './Historique.css'
 
-// ── Icônes (inline SVG helpers) ────────────────────────────────────────────────
+// ── Icônes ───────────────────────────────────────────────────────────────────
 
 const IconSearch = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
   </svg>
 )
@@ -20,7 +20,7 @@ const IconPlus = () => (
     <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="16" /><line x1="8" y1="12" x2="16" y2="12" />
   </svg>
 )
-const IconClock = () => (
+const IconQueue = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
   </svg>
@@ -42,7 +42,9 @@ const IconSettings = () => (
 )
 const IconSupport = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="4" /><line x1="4.93" y1="4.93" x2="9.17" y2="9.17" /><line x1="14.83" y1="14.83" x2="19.07" y2="19.07" /><line x1="14.83" y1="9.17" x2="19.07" y2="4.93" /><line x1="4.93" y1="19.07" x2="9.17" y2="14.83" />
+    <circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="4" />
+    <line x1="4.93" y1="4.93" x2="9.17" y2="9.17" /><line x1="14.83" y1="14.83" x2="19.07" y2="19.07" />
+    <line x1="14.83" y1="9.17" x2="19.07" y2="4.93" /><line x1="4.93" y1="19.07" x2="9.17" y2="14.83" />
   </svg>
 )
 const IconBell = () => (
@@ -55,104 +57,52 @@ const IconHelp = () => (
     <circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><line x1="12" y1="17" x2="12.01" y2="17" />
   </svg>
 )
-const IconArrowLeft = () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="15 18 9 12 15 6" />
-    </svg>
-)
-const IconArrowRight = () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="9 18 15 12 9 6" />
-    </svg>
-)
-const IconDownload = () => (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-        <polyline points="7 10 12 15 17 10" />
-        <line x1="12" y1="15" x2="12" y2="3" />
-    </svg>
-)
-
-// ── Données ───────────────────────────────────────────────────────────────────
 
 const navItems = [
   { id: 'dashboard', label: 'Tableau de bord', icon: <IconDashboard /> },
   { id: 'new-requests', label: 'Nouvelles demandes', icon: <IconPlus /> },
-  { id: 'waiting-queues', label: 'Files d\'attente', icon: <IconClock /> },
+  { id: 'waiting-queues', label: 'Files d\'attente', icon: <IconQueue /> },
   { id: 'ticket-verification', label: 'Vérif. tickets', icon: <IconTicket /> },
   { id: 'history', label: 'Historique', icon: <IconHistory /> },
 ]
 
-const timelineData = [
-  {
-    start: '14:30',
-    end: '14:42',
-    title: 'Urgences - Code Bleu',
-    details: 'Patient ID: #88291 • Dr. Aris S.',
-    status: 'Traité',
-    statusType: 'success',
-    icon: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-        </svg>
-    )
-  },
-  {
-    start: '15:10',
-    end: '15:25',
-    title: 'Consultation Générale',
-    details: 'Patient ID: #90212 • Station 4',
-    status: 'Traité',
-    statusType: 'success',
-    icon: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M3 9a2 2 0 0 1 2-2h.93a2 2 0 0 0 1.664-.89l.812-1.22A2 2 0 0 1 10.07 4h3.86a2 2 0 0 1 1.664.89l.812 1.22A2 2 0 0 0 18.07 7H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z" />
-            <circle cx="12" cy="13" r="3" />
-        </svg>
-    )
-  },
-  {
-    start: '15:45',
-    end: '16:15',
-    title: 'Radiologie & Imagerie',
-    details: 'Patient ID: #11928 • Salle B',
-    status: 'Retardé',
-    statusType: 'warning',
-    icon: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="12" cy="12" r="10" />
-            <circle cx="12" cy="12" r="3" />
-            <line x1="12" y1="7" x2="12" y2="8" />
-            <line x1="12" y1="16" x2="12" y2="17" />
-            <line x1="7" y1="12" x2="8" y2="12" />
-            <line x1="16" y1="12" x2="17" y2="12" />
-        </svg>
-    )
-  },
-  {
-    start: '16:20',
-    end: '16:30',
-    title: 'Prélèvement Sanguin',
-    details: 'Patient ID: #22109 • Labo 1',
-    status: 'Traité',
-    statusType: 'success',
-    icon: (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M12 2v20" />
-            <path d="M5 12h14" />
-        </svg>
-    )
-  }
-]
+// ── Types ────────────────────────────────────────────────────────────────────
+
+type HistoryItem = {
+  id: string
+  time: string
+  patientName: string
+  patientId: string
+  serviceName: string
+  staffName: string
+  status: 'completed' | 'delayed' | 'cancelled'
+  icon: React.ReactNode
+}
 
 // ── Composant Principal ───────────────────────────────────────────────────────
 
-export default function Historique() {
+export default function History() {
   const [activeNav, setActiveNav] = useState('history')
+  const [search, setSearch] = useState('')
+  const [history, setHistory] = useState<HistoryItem[]>([])
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
+  const [userProfile, setUserProfile] = useState<any>(null)
+  
   const navigate = useNavigate()
 
+  useEffect(() => {
+    const storedUser = localStorage.getItem('medilink_user')
+    if (storedUser) {
+      setUserProfile(JSON.parse(storedUser))
+    }
+  }, [])
+
+  const formatDate = (dateStr: string) => {
+    const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long', year: 'numeric' }
+    return new Date(dateStr).toLocaleDateString('fr-FR', options)
+  }
+
   const handleNav = (id: string) => {
-    setActiveNav(id)
     if (id === 'dashboard') navigate('/reception/dashboard')
     if (id === 'new-requests') navigate('/reception/requests')
     if (id === 'waiting-queues') navigate('/reception/waiting-queues')
@@ -160,203 +110,178 @@ export default function Historique() {
     if (id === 'history') navigate('/reception/history')
   }
 
+  const getStatusLabel = (status: HistoryItem['status']) => {
+    switch (status) {
+      case 'completed': return 'TRAITÉ'
+      case 'delayed': return 'RETARDÉ'
+      case 'cancelled': return 'ANNULÉ'
+      default: return 'INCONNU'
+    }
+  }
+
   return (
-    <div className="app-shell">
-      {/* ── Barre Latérale ── */}
-      <aside className="sidebar">
-        <div className="sidebar__brand">
-          <div className="brand-logo">
+    <div className="hi-app-shell">
+      <aside className="hi-sidebar">
+        <div className="hi-sidebar__brand">
+          <div className="hi-brand-logo">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
             </svg>
           </div>
-          <div className="brand-text">
-            <span className="brand-name">Medilink</span>
-            <span className="brand-sub">POSTE DE RÉCEPTION</span>
+          <div className="hi-brand-text">
+            <span className="hi-brand-name">Medilink</span>
+            <span className="hi-brand-sub">POSTE DE RÉCEPTION</span>
           </div>
         </div>
 
-        <nav className="sidebar__nav">
+        <nav className="hi-sidebar__nav">
           {navItems.map((item) => (
             <button
               key={item.id}
-              className={`nav-item ${activeNav === item.id ? 'nav-item--active' : ''}`}
+              className={`hi-nav-item ${activeNav === item.id ? 'hi-nav-item--active' : ''}`}
               onClick={() => handleNav(item.id)}
             >
-              <span className="nav-item__icon">{item.icon}</span>
+              <span className="hi-nav-item__icon">{item.icon}</span>
               {item.label}
             </button>
           ))}
         </nav>
 
-        <div className="sidebar__emergency">
-          <button className="btn-emergency" onClick={() => navigate('/reception/emergency-intake')}>
+        <div className="hi-sidebar__emergency">
+          <button className="hi-btn-emergency" onClick={() => navigate('/reception/emergency-intake')}>
             Ajouter sur place
           </button>
         </div>
 
-        <div className="sidebar__footer">
-          <div className="sidebar__footer-box">
-            <button className="footer-link" onClick={() => navigate('/reception/settings')}>
+        <div className="hi-sidebar__footer">
+          <div className="hi-sidebar__footer-box">
+            <button className="hi-footer-link" onClick={() => navigate('/reception/settings')}>
               <IconSettings /> <span>Paramètres</span>
             </button>
-            <button className="footer-link" onClick={() => navigate('/reception/support')}>
+            <button className="hi-footer-link" onClick={() => navigate('/reception/support')}>
               <IconSupport /> <span>Assistance</span>
             </button>
           </div>
         </div>
       </aside>
 
-      {/* ── Contenu Principal ── */}
-      <main className="main-content">
-        {/* Topbar */}
-        <header className="topbar">
-          <div className="topbar__date">
-            <span className="calendar-icon">📅</span> 24 Octobre 2023
+      <main className="hi-main-content">
+        <header className="hi-topbar">
+          <div className="hi-topbar__date" style={{ position: 'relative', cursor: 'pointer' }}>
+            <span onClick={() => (document.getElementById('hist-date-picker') as HTMLInputElement)?.showPicker()}>
+              {formatDate(selectedDate)}
+            </span>
+            <input 
+              id="hist-date-picker"
+              type="date" 
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              style={{ 
+                position: 'absolute', 
+                opacity: 0, 
+                pointerEvents: 'none',
+                width: 0,
+                height: 0
+              }} 
+            />
           </div>
 
-          <div className="topbar__search">
+          <div className="hi-topbar__search">
             <IconSearch />
             <input
               type="text"
               placeholder="Rechercher un flux..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
             />
           </div>
 
-          <div className="topbar__actions">
-            <button className="icon-btn" aria-label="Notifications" onClick={() => navigate('/reception/notifications')}><IconBell /></button>
-            <button className="icon-btn" aria-label="Aide" onClick={() => navigate('/reception/help')}><IconHelp /></button>
-            <div className="topbar__divider" />
-            <div className="topbar__user">
-              <div className="topbar__user-info">
-                <span className="user-name">Jean Dupont</span>
-                <span className="user-role">Réceptionniste</span>
+          <div className="hi-topbar__actions">
+            <button className="hi-icon-btn" onClick={() => navigate('/reception/notifications')}><IconBell /></button>
+            <button className="hi-icon-btn" onClick={() => navigate('/reception/help')}><IconHelp /></button>
+            <div className="hi-topbar__divider" />
+            <div className="hi-topbar__user" onClick={() => navigate('/connexion')} style={{ cursor: 'pointer' }}>
+              <div className="hi-topbar__user-info">
+                <span className="hi-user-name">{userProfile?.name || 'Chargement...'}</span>
+                <span className="hi-user-role">Réceptionniste</span>
               </div>
-              <div className="user-avatar">JD</div>
+              <div className="hi-user-avatar">{userProfile?.name?.substring(0,2).toUpperCase() || '...'}</div>
             </div>
           </div>
         </header>
 
-        {/* Corps de la page */}
-        <div className="hist-body">
-          <div className="hist-header">
-            <h1 className="hist-title">Historique des Flux</h1>
-            <p className="hist-subtitle">
+        <div className="hi-page-body">
+          <div className="hi-page-header">
+            <h1 className="hi-page-title">Historique des Flux</h1>
+            <p className="hi-page-subtitle">
               Consultez les archives des files d'attente pour analyser les performances cliniques et le temps de réponse des stations.
             </p>
           </div>
 
-          <div className="hist-grid">
-            {/* Colonne Gauche */}
-            <div className="hist-left">
-              {/* Sélecteur de date */}
-              <div className="date-selector">
-                <div className="date-selector__header">
-                  <span className="date-selector__title">Sélecteur de date</span>
-                  <div className="date-selector__arrows">
-                    <button className="arrow-btn"><IconArrowLeft /></button>
-                    <button className="arrow-btn"><IconArrowRight /></button>
+          <div className="hi-history-layout">
+            <div className="hi-date-sidebar">
+               <div className="hi-calendar-mini">
+                  <div className="hi-calendar-header">
+                    <span className="hi-month">Avril 2026</span>
                   </div>
-                </div>
-                <div className="calendar-grid">
-                    <div className="calendar-day-label">LU</div>
-                    <div className="calendar-day-label">MA</div>
-                    <div className="calendar-day-label">ME</div>
-                    <div className="calendar-day-label">JE</div>
-                    <div className="calendar-day-label">VE</div>
-                    <div className="calendar-day-label">SA</div>
-                    <div className="calendar-day-label">DI</div>
-                    
-                    <div className="calendar-day calendar-day--muted">19</div>
-                    <div className="calendar-day calendar-day--muted">20</div>
-                    <div className="calendar-day calendar-day--muted">21</div>
-                    <div className="calendar-day">22</div>
-                    <div className="calendar-day">23</div>
-                    <div className="calendar-day calendar-day--active">24</div>
-                    <div className="calendar-day">25</div>
-                    
-                    <div className="calendar-day">26</div>
-                    <div className="calendar-day">27</div>
-                    <div className="calendar-day">28</div>
-                    <div className="calendar-day">29</div>
-                    <div className="calendar-day">30</div>
-                    <div className="calendar-day">31</div>
-                    <div className="calendar-day calendar-day--muted">1</div>
-                </div>
-              </div>
+                  {/* Calendar placeholder grid */}
+                  <div className="hi-calendar-grid">
+                    {/* Visual markers for selected date */}
+                  </div>
+               </div>
 
-              {/* Résumé Card */}
-              <div className="summary-card">
-                <div className="summary-card__header">Résumé du 24 Octobre</div>
-                <div className="summary-card__value">142 Patients</div>
-                <div className="summary-card__footer">
-                  <div className="summary-stat">
-                    <span className="summary-stat__label">Temps moyen</span>
-                    <span className="summary-stat__value">12 min</span>
+               <div className="hi-summary-card">
+                  <span className="hi-summary-label">Résumé du {formatDate(selectedDate)}</span>
+                  <div className="hi-summary-value">{history.length} Patients</div>
+                  <div className="hi-summary-stats">
+                    <div className="hi-sub-stat">Temps moyen: <span>-- min</span></div>
+                    <div className="hi-sub-stat">Satisfaction: <span>--/5</span></div>
                   </div>
-                  <div className="summary-stat">
-                    <span className="summary-stat__label">Satisfaction</span>
-                    <span className="summary-stat__value">4.8/5</span>
-                  </div>
-                </div>
-                {/* Graphique décoratif */}
-                <div className="summary-card__graph">
-                    <svg viewBox="0 0 100 40" preserveAspectRatio="none">
-                        <path d="M0 40 Q 25 35, 50 20 T 100 10 L 100 40 L 0 40 Z" fill="rgba(255,255,255,0.15)" />
-                        <path d="M0 40 Q 25 35, 50 20 T 100 10" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2" />
-                    </svg>
-                </div>
-              </div>
+               </div>
             </div>
 
-            {/* Colonne Droite */}
-            <div className="hist-right">
-              <div className="flux-header">
-                <div className="flux-title-block">
-                  <h2 className="flux-title">Flux détaillé</h2>
-                  <p className="flux-subtitle">Chronologie des admissions et passages</p>
-                </div>
-                <button className="export-btn">
-                  <IconDownload /> Exporter PDF
+            <div className="hi-history-main">
+              <div className="hi-history-header">
+                <h2 className="hi-section-title">Flux détaillé</h2>
+                <button className="hi-btn-export">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                  Exporter PDF
                 </button>
               </div>
 
-              <div className="timeline">
-                {timelineData.map((item, idx) => (
-                  <div key={idx} className="timeline-item">
-                    <div className="timeline-time">
-                      <div className="time-start">{item.start}</div>
-                      <div className="time-line" />
-                      <div className="time-end">{item.end}</div>
-                    </div>
-                    
-                    <div className="timeline-content-wrapper">
-                        <div className="timeline-icon-box">
-                            {item.icon}
+              {history.length === 0 ? (
+                <div className="hi-empty-state-history">
+                   <div className="hi-empty-icon">
+                      <IconHistory />
+                   </div>
+                   <p>Aucun flux enregistré pour cette date.</p>
+                </div>
+              ) : (
+                <div className="hi-timeline">
+                  {history.map(item => (
+                    <div key={item.id} className="hi-timeline-item">
+                      <div className="hi-timeline-time">{item.time}</div>
+                      <div className="hi-timeline-content">
+                        <div className="hi-timeline-icon">{item.icon}</div>
+                        <div className="hi-timeline-info">
+                          <div className="hi-timeline-title">{item.serviceName}</div>
+                          <div className="hi-timeline-meta">Patient ID: #{item.patientId} • {item.staffName}</div>
                         </div>
-                        <div className="timeline-content">
-                            <div className="timeline-main">
-                                <div className="timeline-text">
-                                    <h3 className="timeline-item-title">{item.title}</h3>
-                                    <p className="timeline-item-details">{item.details}</p>
-                                </div>
-                                <span className={`timeline-status timeline-status--${item.statusType}`}>
-                                    {item.status}
-                                </span>
-                            </div>
+                        <div className={`hi-timeline-status hi-status--${item.status}`}>
+                          {getStatusLabel(item.status)}
                         </div>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Pagination */}
-              <div className="pagination">
-                <button className="pag-arrow"><IconArrowLeft /></button>
-                <button className="pag-btn pag-btn--active">1</button>
-                <button className="pag-btn">2</button>
-                <button className="pag-btn">3</button>
-                <button className="pag-arrow"><IconArrowRight /></button>
+                  ))}
+                </div>
+              )}
+              
+              <div className="hi-pagination">
+                <button className="hi-page-btn" disabled>&lt;</button>
+                <button className="hi-page-btn hi-page-btn--active">1</button>
+                <button className="hi-page-btn" disabled>&gt;</button>
               </div>
             </div>
           </div>
@@ -365,4 +290,3 @@ export default function Historique() {
     </div>
   )
 }
-

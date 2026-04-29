@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -107,6 +108,31 @@ public class RendezVousService {
     @Transactional(readOnly = true)
     public List<RendezVousResponseDTO> obtenirRendezVousMedecin(Long medecinId) {
         List<RendezVous> rendezVousList = rendezVousRepository.findByMedecinId(medecinId);
+
+        return rendezVousList.stream()
+                .map(this::toFullResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Obtient tous les rendez-vous d'un hôpital
+     */
+    @Transactional(readOnly = true)
+    public List<RendezVousResponseDTO> obtenirRendezVousHopital(Long hopitalId) {
+        // 1. Récupérer les services de l'hôpital depuis le Lot 1
+        List<Map<String, Object>> services = lot1Client.getServicesByHopital(hopitalId);
+        
+        if (services == null || services.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        // 2. Extraire les IDs des services
+        List<Long> serviceIds = services.stream()
+                .map(s -> ((Number) s.get("id")).longValue())
+                .collect(Collectors.toList());
+
+        // 3. Récupérer les rendez-vous pour ces services
+        List<RendezVous> rendezVousList = rendezVousRepository.findByServiceIdIn(serviceIds);
 
         return rendezVousList.stream()
                 .map(this::toFullResponseDTO)

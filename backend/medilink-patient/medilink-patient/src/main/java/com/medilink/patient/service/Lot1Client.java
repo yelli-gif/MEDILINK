@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class Lot1Client {
@@ -24,11 +25,20 @@ public class Lot1Client {
         }
     }
 
+    public List<Map<String, Object>> getServicesByHopital(Long hopitalId) {
+        try {
+            String url = lot1Url + "/api/services?hopitalId=" + hopitalId;
+            return restTemplate.getForObject(url, List.class);
+        } catch (Exception e) {
+            return Collections.emptyList();
+        }
+    }
+
     public Map<String, Object> getServiceById(Long id) {
-        List<Map<String, Object>> services = getServices();
-        return services.stream()
-                .filter(s -> id.equals(((Number) s.get("id")).longValue()))
-                .findFirst()
-                .orElse(null);
+        try {
+            return restTemplate.getForObject(lot1Url + "/api/services/" + id, Map.class);
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

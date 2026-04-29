@@ -66,6 +66,16 @@ public class RendezVousController {
     }
 
     /**
+     * GET /api/rendez-vous/hopital/{hopitalId} - Obtenir les rendez-vous d'un hôpital
+     */
+    @GetMapping("/hopital/{hopitalId}")
+    @Operation(summary = "Rendez-vous d'un hôpital", description = "Liste tous les rendez-vous d'un hôpital pour la réception")
+    public ResponseEntity<List<RendezVousResponseDTO>> obtenirRendezVousHopital(@PathVariable Long hopitalId) {
+        List<RendezVousResponseDTO> response = rendezVousService.obtenirRendezVousHopital(hopitalId);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
      * DELETE /api/rendez-vous/{id} - Annuler un rendez-vous (annulerRDV dans l'UML)
      */
     @DeleteMapping("/{id}")

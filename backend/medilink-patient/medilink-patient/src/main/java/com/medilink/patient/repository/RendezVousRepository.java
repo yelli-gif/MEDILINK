@@ -32,6 +32,11 @@ public interface RendezVousRepository extends JpaRepository<RendezVous, Long> {
      */
     List<RendezVous> findByServiceId(Long serviceId);
 
+    /**
+     * Trouve tous les rendez-vous pour une liste de services
+     */
+    List<RendezVous> findByServiceIdIn(List<Long> serviceIds);
+
     // Methode supprimée car Hopital n'est plus une entité locale
     // @Query("SELECT r FROM RendezVous r WHERE r.service.hopital.id = :hopitalId")
     // List<RendezVous> findByHopitalId(@Param("hopitalId") Long hopitalId);

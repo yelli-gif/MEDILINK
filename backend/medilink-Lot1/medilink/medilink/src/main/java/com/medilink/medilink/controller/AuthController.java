@@ -42,22 +42,21 @@ public class AuthController {
             // Injection des IDs spécifiques selon le rôle
             try {
                 if ("MEDECIN".equals(roleStr)) {
-                    medecinRepository.findById(user.getId()).ifPresent(m -> {
-                        claims.put("medecinId", m.getId());
-                        if (m.getService() != null) {
-                            claims.put("serviceId", m.getService().getId());
-                            if (m.getService().getHopital() != null) {
-                                claims.put("hopitalId", m.getService().getHopital().getId());
-                            }
-                        }
-                    });
+                    List<Map<String, Object>> res = jdbcTemplate.queryForList(
+                        "SELECT m.id, m.service_id, s.hopital_id FROM medecin m " +
+                        "LEFT JOIN service s ON m.service_id = s.id WHERE m.id = ?", user.getId());
+                    if (!res.isEmpty()) {
+                        claims.put("medecinId", res.get(0).get("id"));
+                        claims.put("serviceId", res.get(0).get("service_id"));
+                        claims.put("hopitalId", res.get(0).get("hopital_id"));
+                    }
                 } else if ("ACCUEIL".equals(roleStr)) {
-                    acceuilRepository.findById(user.getId()).ifPresent(a -> {
-                        claims.put("personnelId", a.getId());
-                        if (a.getHopital() != null) {
-                            claims.put("hopitalId", a.getHopital().getId());
-                        }
-                    });
+                    List<Map<String, Object>> res = jdbcTemplate.queryForList(
+                        "SELECT id, hopital_id FROM acceuil WHERE id = ?", user.getId());
+                    if (!res.isEmpty()) {
+                        claims.put("personnelId", res.get(0).get("id"));
+                        claims.put("hopitalId", res.get(0).get("hopital_id"));
+                    }
                 } else if ("PHARMACIEN".equals(roleStr)) {
                     // Pour pharmacien, on utilise JDBC car le mapping JPA est parfois complexe
                     List<Map<String, Object>> ph = jdbcTemplate.queryForList(
