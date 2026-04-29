@@ -3,7 +3,7 @@ import {
   Search, Bell, MapPin, Calendar, CalendarCheck, ChevronDown, ChevronLeft, ChevronRight,
   Plus, Building2, Pill, Activity, User, ArrowLeft, Loader2, Navigation 
 } from 'lucide-react';
-import { hopitalAPI, serviceAPI, rendezVousAPI } from '../../../services/api';
+import { hopitalAPI, serviceAPI, personnelAPI, rendezVousAPI } from '../../../services/api';
 
 type EstablishmentType = 'hopital' | 'pharmacie';
 
@@ -80,7 +80,8 @@ const Rdv: React.FC = () => {
         // 1. Charger tous les services globaux pour le dropdown de tri
         const servicesGlobaux = await serviceAPI.lister();
         if (servicesGlobaux) {
-           setAvailableServices(['Tous', ...servicesGlobaux.map((s: any) => s.nom)]);
+           const uniqueServices = Array.from(new Set(servicesGlobaux.map((s: any) => s.nom)));
+           setAvailableServices(['Tous', ...(uniqueServices as string[])]);
         }
 
         // 2. Charger les hôpitaux
@@ -225,18 +226,30 @@ const Rdv: React.FC = () => {
       const today = new Date().toISOString().split('T')[0];
       const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
       const rdvDate = activeDate === 'Aujourd\'hui' ? today : activeDate === 'Demain' ? tomorrow : activeDate;
+      const hopitalIdNum = parseInt(est.id);
       
       // On récupère l'ID du service sélectionné
       const servicesGlobal = await serviceAPI.lister();
-      const serviceObj = servicesGlobal.find((s: any) => s.nom === selectedBookingService);
+      const serviceObj = servicesGlobal.find((s: any) => s.nom === selectedBookingService && s.hopitalId === hopitalIdNum || s.nom === selectedBookingService);
+
+      // Récupérer un médecin valide pour cet hôpital pour éviter l'erreur de clé étrangère
+      let validMedecinId = 1;
+      try {
+         const medecins = await personnelAPI.listerMedecins(hopitalIdNum);
+         if (medecins && medecins.length > 0) {
+            validMedecinId = medecins[0].id;
+         }
+      } catch (e) {
+         console.warn("Impossible de récupérer les médecins, utilisation de l'ID par défaut 1");
+      }
 
       await rendezVousAPI.creer({
         date: rdvDate,
         heure: selectedSlot.time,
         patientId: currentUser.patientId || currentUser.id,
-        medecinId: 1, // À dynamiser plus tard si nécessaire
+        medecinId: validMedecinId,
         serviceId: serviceObj?.id || 1, 
-        hopitalId: parseInt(est.id)
+        hopitalId: hopitalIdNum
       });
       
       setShowToast(true);
