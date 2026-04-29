@@ -29,8 +29,7 @@ public class Medecin {
     }
 
     @OneToOne(fetch = FetchType.LAZY)
-    @MapsId
-    @JoinColumn(name = "id")
+    @JoinColumn(name = "id", insertable = false, updatable = false)
     @JsonIgnore // Évite la boucle infinie avec Users
     private Users user;
 
