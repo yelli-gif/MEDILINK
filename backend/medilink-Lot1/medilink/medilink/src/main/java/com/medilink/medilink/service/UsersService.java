@@ -59,6 +59,10 @@ public class UsersService {
                 System.out.println("DEBUG: Role provided: " + utilisateur.getRole());
             }
 
+            if (utilisateur.getCreatedAt() == null) {
+                utilisateur.setCreatedAt(java.time.LocalDateTime.now());
+            }
+
             System.out.println("DEBUG: Enregistrement en base de données...");
             Users savedUser = usersRepository.save(utilisateur);
             System.out.println("DEBUG: Inscription réussie pour l'ID : " + savedUser.getId());

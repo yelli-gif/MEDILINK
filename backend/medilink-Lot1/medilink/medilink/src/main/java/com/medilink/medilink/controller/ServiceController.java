@@ -51,6 +51,10 @@ public class ServiceController {
                 return ResponseEntity.badRequest().body("L'objet hopital avec un ID valide est obligatoire.");
             }
 
+            if (service.getCreatedAt() == null) {
+                service.setCreatedAt(java.time.LocalDateTime.now());
+            }
+
             Service saved = serviceRepository.save(service);
             System.out.println("DEBUG: Service sauvegardé avec succès: " + saved.getId());
             return ResponseEntity.ok(saved);

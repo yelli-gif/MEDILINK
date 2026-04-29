@@ -105,6 +105,10 @@ public class PersonnelController {
                         .ifPresent(medecin::setService);
             }
             
+            if (medecin.getCreatedAt() == null) {
+                medecin.setCreatedAt(java.time.LocalDateTime.now());
+            }
+
             Medecin saved = medecinRepository.save(medecin);
             System.out.println("DEBUG: Profil médecin créé avec succès");
             return ResponseEntity.ok(saved);
@@ -130,6 +134,9 @@ public class PersonnelController {
         if (acceuil.getHopital() != null && acceuil.getHopital().getId() != null) {
             hopitalRepository.findById(acceuil.getHopital().getId())
                     .ifPresent(acceuil::setHopital);
+        }
+        if (acceuil.getCreatedAt() == null) {
+            acceuil.setCreatedAt(java.time.LocalDateTime.now());
         }
         return acceuilRepository.save(acceuil);
     }
