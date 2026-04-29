@@ -58,6 +58,7 @@ public class RendezVousMapper {
                 .date(rendezVous.getDate())
                 .heure(rendezVous.getHeure())
                 .dateCreation(rendezVous.getCreatedAt())
+                .statut(rendezVous.getStatut())
                 .patient(patientInfo)
                 .medecinId(rendezVous.getMedecinId())
                 .service(serviceInfo)

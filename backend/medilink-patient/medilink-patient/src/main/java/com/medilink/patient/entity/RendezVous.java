@@ -55,6 +55,9 @@ public class RendezVous {
     @Column(name = "service_id")
     private Long serviceId;
 
+    @Column(name = "statut")
+    private String statut = "EN_ATTENTE";
+
     // Méthode helper pour obtenir l'hôpital via le service - SUPPRIMÉE CAR PLUS DE RELATION DIRECTE
     // public Hopital obtenirHopital() {
     //    return service != null ? service.getHopital() : null;

@@ -29,7 +29,7 @@ public class RendezVousDTO {
     private Long serviceId;
 
     @NotNull(message = "La date du rendez-vous est obligatoire")
-    @Future(message = "La date du rendez-vous doit être dans le futur")
+    @FutureOrPresent(message = "La date du rendez-vous doit être aujourd'hui ou dans le futur")
     private LocalDate date;
 
     @NotNull(message = "L'heure du rendez-vous est obligatoire")

@@ -23,6 +23,7 @@ public class RendezVousResponseDTO {
     private LocalDate date;
     private LocalTime heure;
     private LocalDateTime dateCreation;
+    private String statut;
 
     // Informations du patient (imbriquées)
     private PatientInfoDTO patient;
