@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
-import { hopitalAPI, authAPI } from '../../../../services/api';
+import { hopitalAPI, authAPI, personnelAPI, pharmacieAdminAPI } from '../../../../services/api';
 
 export default function CreationPharmacie() {
   const navigate = useNavigate();
@@ -109,26 +109,42 @@ export default function CreationPharmacie() {
     setCreateError('');
 
     try {
-      // 1. Créer le compte admin (Role PHARMACIEN pour le titulaire)
-      await authAPI.register({
+      console.log("DÉBUT CRÉATION PHARMACIE");
+      
+      // 1. Créer le compte admin
+      console.log("Étape 1: Inscription utilisateur...", { email, role: 'PHARMACIEN' });
+      const savedUser = await authAPI.register({
         email,
         motDePasse: password,
         role: 'PHARMACIEN',
       });
+      console.log("Étape 1 Réussie. Utilisateur créé:", savedUser);
 
-      // 2. Créer l'établissement (on utilise hopitalAPI par défaut pour le moment)
-      await hopitalAPI.ajouter({
-        nom: "[PHARMACIE] " + name,
+      // 2. Créer l'établissement (Table pharmacie)
+      console.log("Étape 2: Création établissement...", { nom: name, adresse: address });
+      const savedEstablishment = await pharmacieAdminAPI.ajouter({
+        nom: name,
         adresse: address,
         latitude: parseFloat(selectedCoords.lat),
         longitude: parseFloat(selectedCoords.lon),
       });
+      console.log("Étape 2 Réussie. Pharmacie créée:", savedEstablishment);
 
-      // 3. Rediriger
+      // 3. Créer le profil pharmacien
+      console.log("Étape 3: Création profil pharmacien...", { id: savedUser.id, nom: overseer, pharmacieId: savedEstablishment.id });
+      await personnelAPI.ajouterPharmacien({
+        id: savedUser.id,
+        nom: overseer,
+        pharmacieId: savedEstablishment.id
+      });
+      console.log("Étape 3 Réussie.");
+
+      // 4. Rediriger
+      console.log("TOUT EST OK. Redirection...");
       navigate('/pharmacie/dashboard');
     } catch (err: any) {
-      console.error('Erreur création:', err);
-      setCreateError(err.message || 'Erreur lors de la création');
+      console.error('ERREUR CRITIQUE DANS LE FLOW:', err);
+      setCreateError(err.message || 'Erreur lors de la création (Vérifiez la console)');
     } finally {
       setCreateLoading(false);
     }

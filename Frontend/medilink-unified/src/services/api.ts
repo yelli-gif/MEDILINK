@@ -139,6 +139,12 @@ export const personnelAPI = {
       method: 'POST',
       body: JSON.stringify(data),
     }),
+
+  ajouterPharmacien: (data: any) =>
+    apiFetch<any>(`${API.LOT1}/api/personnel/pharmaciens`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
 };
 
 // ================================================================
@@ -271,6 +277,20 @@ export const pharmacieAPI = {
 
   status: () =>
     apiFetch<any>(`${API.LOT5}/api/status`),
+};
+
+// ================================================================
+// ADMIN PHARMACIE (Lot 1 - port 8081)
+// ================================================================
+export const pharmacieAdminAPI = {
+  lister: () =>
+    apiFetch<any[]>(`${API.LOT1}/api/admin/pharmacies/liste`),
+
+  ajouter: (data: { nom: string; adresse: string; latitude: number; longitude: number }) =>
+    apiFetch<any>(`${API.LOT1}/api/admin/pharmacies/ajouter`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
 };
 
 export default API;

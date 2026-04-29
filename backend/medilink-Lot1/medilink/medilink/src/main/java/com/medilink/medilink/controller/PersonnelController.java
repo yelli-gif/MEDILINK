@@ -155,4 +155,41 @@ public class PersonnelController {
             return ResponseEntity.status(500).body("Erreur SQL : " + e.getMessage());
         }
     }
+
+    @GetMapping("/pharmaciens")
+    public List<java.util.Map<String, Object>> getPharmaciens() {
+        return jdbcTemplate.queryForList("SELECT * FROM pharmacien");
+    }
+
+    @PostMapping("/pharmaciens")
+    public ResponseEntity<?> savePharmacien(@RequestBody java.util.Map<String, Object> payload) {
+        try {
+            System.out.println("DEBUG: Native SQL Insert pour Pharmacien: " + payload);
+            
+            Long id = payload.get("id") != null ? Long.valueOf(payload.get("id").toString()) : null;
+            String nom = (String) payload.get("nom");
+            Long pharmacieId = payload.get("pharmacieId") != null ? Long.valueOf(payload.get("pharmacieId").toString()) : null;
+            
+            if (id == null) return ResponseEntity.badRequest().body("ID manquant");
+
+            // INSERT NATIVE (avec pharmacie_id optionnel)
+            if (pharmacieId != null) {
+                jdbcTemplate.update(
+                    "INSERT INTO pharmacien (id, nom, pharmacie_id) VALUES (?, ?, ?)",
+                    id, nom, pharmacieId
+                );
+            } else {
+                jdbcTemplate.update(
+                    "INSERT INTO pharmacien (id, nom) VALUES (?, ?)",
+                    id, nom
+                );
+            }
+
+            System.out.println("DEBUG: Insert SQL réussi pour Pharmacien ID=" + id);
+            return ResponseEntity.ok().body("{\"id\": " + id + ", \"status\": \"success\"}");
+        } catch (Exception e) {
+            System.err.println("SQL ERROR: " + e.getMessage());
+            return ResponseEntity.status(500).body("Erreur SQL : " + e.getMessage());
+        }
+    }
 }
