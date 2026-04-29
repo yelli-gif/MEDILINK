@@ -134,8 +134,11 @@ export default function HospitalCreation() {
       }
 
       // 4. Sauvegarder localement la config hôpital
+      if (!savedHopital?.id) {
+        throw new Error("Le backend n'a pas retourné l'ID de l'hôpital. Vérifiez la connexion au serveur.");
+      }
       const config = {
-        id: savedHopital.id || 'H-' + Date.now(),
+        id: savedHopital.id,
         name,
         address,
         overseer,

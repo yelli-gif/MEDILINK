@@ -148,6 +148,7 @@ export default function AddService() {
   };
 
   const [deploying, setDeploying] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleDeploy = async () => {
     if (!name.trim()) {
@@ -156,56 +157,67 @@ export default function AddService() {
     }
 
     setDeploying(true);
+    setError(null);
 
     try {
-      // Récupérer l'ID de l'hôpital connecté
-      const configRaw = localStorage.getItem('sanctuary_hospital_config');
+      // Récupérer l'ID de l'hôpital connecté depuis plusieurs sources possibles
+      const configRaw =
+        localStorage.getItem('sanctuary_hospital_config') ||
+        localStorage.getItem('medilink_hospital') ||
+        localStorage.getItem('hospital_config');
       const config = configRaw ? JSON.parse(configRaw) : null;
-      const hopitalId = config?.id || 1;
+      const hopitalId = config?.id || config?.hopitalId;
 
-      // Appel réel au backend (Lot 2 - port 8082)
+      if (!hopitalId) {
+        setError("Impossible de trouver l'ID de l'hôpital. Veuillez vous reconnecter.");
+        setDeploying(false);
+        return;
+      }
+
+      // Appel réel au backend Lot 1 - port 8081
       await serviceAPI.creer({
         nom: name,
-        description: description || `Service de ${name}`,
         hopitalId: parseInt(hopitalId),
       });
-    } catch (err) {
+
+      // Sauvegarde locale pour l'affichage immédiat
+      const newService = {
+        id: Date.now().toString(),
+        name,
+        category,
+        description,
+        hours,
+        practitioner: "À assigner",
+        staffCount: 0,
+        status: 'normal',
+        iconType: 'activity'
+      };
+
+      const existing = localStorage.getItem('sanctuary_services');
+      const services = existing ? JSON.parse(existing) : [];
+      localStorage.setItem('sanctuary_services', JSON.stringify([newService, ...services]));
+
+      // Notification
+      const notifications = JSON.parse(localStorage.getItem('sanctuary_notifications') || '[]');
+      const newNotification = {
+        id: Date.now().toString(),
+        type: 'service',
+        title: 'Nouveau service médical',
+        message: `L'unité ${name} (${category}) est maintenant opérationnelle dans l'établissement.`,
+        time: new Date().toISOString(),
+        read: false
+      };
+      localStorage.setItem('sanctuary_notifications', JSON.stringify([newNotification, ...notifications]));
+      window.dispatchEvent(new Event('notifications_updated'));
+
+      setDeploying(false);
+      navigate('/admin/services');
+
+    } catch (err: any) {
       console.error('Erreur création service backend:', err);
-      // On continue même si le backend échoue pour sauvegarder localement
+      setError(`Erreur lors de la création : ${err.message}`);
+      setDeploying(false);
     }
-
-    // Sauvegarde locale aussi (pour l'affichage immédiat)
-    const newService = {
-      id: Date.now().toString(),
-      name,
-      category,
-      description,
-      hours,
-      practitioner: "À assigner",
-      staffCount: 0,
-      status: 'normal',
-      iconType: 'activity'
-    };
-
-    const existing = localStorage.getItem('sanctuary_services');
-    const services = existing ? JSON.parse(existing) : [];
-    localStorage.setItem('sanctuary_services', JSON.stringify([newService, ...services]));
-
-    // Create Notification
-    const notifications = JSON.parse(localStorage.getItem('sanctuary_notifications') || '[]');
-    const newNotification = {
-      id: Date.now().toString(),
-      type: 'service',
-      title: 'Nouveau service médical',
-      message: `L'unité ${name} (${category}) est maintenant opérationnelle dans l'établissement.`,
-      time: new Date().toISOString(),
-      read: false
-    };
-    localStorage.setItem('sanctuary_notifications', JSON.stringify([newNotification, ...notifications]));
-    window.dispatchEvent(new Event('notifications_updated'));
-
-    setDeploying(false);
-    navigate('/admin/services');
   };
 
   const days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
@@ -395,16 +407,27 @@ export default function AddService() {
 
       </div>
 
+      {/* Erreur backend */}
+      {error && (
+        <div className="mt-6 bg-red-50 border border-red-200 text-red-700 rounded-2xl px-6 py-4 text-[14px] font-medium">
+          ⚠️ {error}
+        </div>
+      )}
+
       {/* Form Actions */}
       <div className="flex items-center justify-end gap-6 mt-10 animate-fade-in-up delay-200">
-        <button className="text-[14px] font-bold text-gray-600 hover:text-gray-900 transition-colors">
-          Ignorer le Brouillon
+        <button
+          onClick={() => navigate('/admin/services')}
+          className="text-[14px] font-bold text-gray-600 hover:text-gray-900 transition-colors"
+        >
+          Annuler
         </button>
         <button
           onClick={handleDeploy}
-          className="bg-[#0B56FA] hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-lg shadow-blue-500/20 transition-transform hover:scale-105 active:scale-95 text-[14px]"
+          disabled={deploying}
+          className="bg-[#0B56FA] hover:bg-blue-700 disabled:opacity-60 text-white font-bold py-3 px-8 rounded-full shadow-lg shadow-blue-500/20 transition-transform hover:scale-105 active:scale-95 text-[14px]"
         >
-          Déployer le Service Médical
+          {deploying ? 'Déploiement...' : 'Déployer le Service Médical'}
         </button>
       </div>
 
