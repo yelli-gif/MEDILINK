@@ -6,6 +6,7 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,24 +23,29 @@ public class HopitalController {
 
     // 1. Endpoint pour AJOUTER (POST)
     @PostMapping("/ajouter")
-    public String ajouter(@RequestBody Map<String, Object> payload) {
+    public ResponseEntity<?> ajouter(@RequestBody Map<String, Object> payload) {
         try {
             Hopital h = new Hopital();
             h.setNom((String) payload.get("nom"));
             h.setAdresse((String) payload.get("adresse"));
 
-            GeometryFactory geometryFactory = new GeometryFactory();
-            double lat = Double.parseDouble(payload.get("latitude").toString());
-            double lon = Double.parseDouble(payload.get("longitude").toString());
+            try {
+                GeometryFactory geometryFactory = new GeometryFactory();
+                double lat = Double.parseDouble(payload.get("latitude").toString());
+                double lon = Double.parseDouble(payload.get("longitude").toString());
 
-            Point p = geometryFactory.createPoint(new Coordinate(lon, lat));
-            p.setSRID(4326);
-            h.setLocalisation(p);
+                Point p = geometryFactory.createPoint(new Coordinate(lon, lat));
+                p.setSRID(4326);
+                h.setLocalisation(p);
+            } catch (Exception e) {
+                System.out.println("WARN: Erreur de géolocalisation ignorée : " + e.getMessage());
+                // On continue car localisation est maintenant nullable=true
+            }
 
-            hopitalService.enregistrer(h);
-            return "Succès : L'hôpital " + h.getNom() + " a été enregistré !";
+            Hopital saved = hopitalService.enregistrer(h);
+            return ResponseEntity.status(201).body(saved);
         } catch (Exception e) {
-            return "Erreur : " + e.getMessage();
+            return ResponseEntity.status(500).body("Erreur critique : " + e.getMessage());
         }
     }
 

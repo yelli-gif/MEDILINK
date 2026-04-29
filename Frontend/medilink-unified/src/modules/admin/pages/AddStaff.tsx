@@ -19,18 +19,36 @@ export default function AddStaff() {
   const [password, setPassword] = useState('1234'); // Default temp password
   const [role, setRole] = useState('');
   const [department, setDepartment] = useState('');
+  const [availableServices, setAvailableServices] = useState<string[]>([]);
+  const [servicesLoading, setServicesLoading] = useState(true);
 
-  const [departments, setDepartments] = useState<string[]>(["Cardiologie", "Urgences", "Médecine Générale", "Administratif"]);
+  useEffect(() => {
+    const loadServices = async () => {
+      try {
+        const configRaw = localStorage.getItem('sanctuary_hospital_config');
+        const config = configRaw ? JSON.parse(configRaw) : null;
+        const hopitalId = config?.id;
+
+        const services = await serviceAPI.listerTous(hopitalId);
+        setAvailableServices(services.map(s => s.nom).filter(Boolean));
+      } catch (err) {
+        console.error("Erreur chargement services:", err);
+      } finally {
+        setServicesLoading(false);
+      }
+    };
+    loadServices();
+  }, []);
+
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const loadServices = async () => {
       try {
         const services = await serviceAPI.listerTous();
+        // On récupère uniquement les noms des services réels
         const apiDepts = services.map((s: any) => s.nom || s.name).filter(Boolean);
-        if (apiDepts.length > 0) {
-          setDepartments(prev => Array.from(new Set([...prev, ...apiDepts])));
-        }
+        setDepartments(apiDepts);
       } catch (err) {
         console.error("Erreur chargement services:", err);
       }
@@ -40,7 +58,7 @@ export default function AddStaff() {
 
   const roles = [
     { label: "Médecin", value: "MEDECIN" },
-    { label: "Accueil / Réception", value: "RECEPTION" }
+    { label: "Accueil / Réception", value: "ACCUEIL" }
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -54,21 +72,35 @@ export default function AddStaff() {
     setLoading(true);
 
     try {
+      // 0. Récupérer l'ID de l'hôpital
+      const configRaw = localStorage.getItem('sanctuary_hospital_config');
+      const config = configRaw ? JSON.parse(configRaw) : null;
+      const hopitalId = config?.id || 1;
+
       // 1. Register user in Lot 1 (port 8081)
-      await authAPI.register({
+      const savedUser = await authAPI.register({
         email: email,
         motDePasse: password,
-        role: role // Backend expected role
+        role: role // Backend expected role (MEDECIN or ACCUEIL)
       });
 
       // 2. If it's a doctor, add to personnel table in Lot 1
       if (role === "MEDECIN") {
         await personnelAPI.ajouterMedecin({
+          id: savedUser.id, // ID partagé
           nom: nom,
           prenom: prenom,
           email: email,
-          specialite: department, // Using department as specialty for now
-          service: { nom: department } // Assuming service name works
+          specialite: department,
+          service: { nom: department } 
+        });
+      } else if (role === "ACCUEIL") {
+        await personnelAPI.ajouterAccueil({
+          id: savedUser.id,
+          nom: nom,
+          prenom: prenom,
+          email: email,
+          hopital: { id: parseInt(hopitalId) }
         });
       }
 
@@ -149,9 +181,12 @@ export default function AddStaff() {
               <div>
                 <label className="block text-[13px] font-bold text-gray-900 mb-2">Service d'affectation *</label>
                 <select required value={department} onChange={e => setDepartment(e.target.value)} className="w-full bg-[#F3F4F6] border-0 rounded-xl px-4 py-3 font-medium outline-none focus:ring-2 focus:ring-blue-500/20">
-                  <option value="">Sélectionner...</option>
-                  {departments.map(d => <option key={d} value={d}>{d}</option>)}
+                  <option value="">{availableServices.length === 0 ? "Aucun service créé" : "Sélectionner..."}</option>
+                  {availableServices.map(d => <option key={d} value={d}>{d}</option>)}
                 </select>
+                {availableServices.length === 0 && !servicesLoading && (
+                  <p className="text-[11px] text-red-500 mt-1 font-bold">Veuillez d'abord créer un service dans l'onglet "Services".</p>
+                )}
               </div>
             </div>
 

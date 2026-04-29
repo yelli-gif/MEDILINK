@@ -118,7 +118,11 @@ function App() {
           <Route path="/admin/setup" element={<HospitalCreation />} />
           <Route path="/admin/pharmacy/setup" element={<PharmacyCreation />} />
           <Route path="/admin" element={<AdminLayout />}>
-            <Route index element={<Navigate to="/admin/setup" replace />} />
+            <Route index element={
+              localStorage.getItem('sanctuary_hospital_config') 
+                ? <Navigate to="/admin/profile" replace /> 
+                : <Navigate to="/admin/setup" replace />
+            } />
             <Route path="profile" element={<HospitalProfile />} />
             <Route path="services" element={<ServicesDashboard />} />
             <Route path="services/add" element={<AddService />} />

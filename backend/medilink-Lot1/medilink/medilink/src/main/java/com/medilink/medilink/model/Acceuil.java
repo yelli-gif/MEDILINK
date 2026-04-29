@@ -1,5 +1,6 @@
 package com.medilink.medilink.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -16,12 +17,14 @@ public class Acceuil {
     private String nom;
     private String prenom;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @MapsId
     @JoinColumn(name = "id")
+    @JsonIgnore // Évite la boucle infinie avec Users
     private Users user; // Lien avec le compte utilisateur (Socle)
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "hopital_id") // C'est ici qu'on lie à l'hôpital et non au service
+    @JsonIgnore // Hopital contient des géométries non sérialisables
     private Hopital hopital;
 }

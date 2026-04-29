@@ -69,7 +69,7 @@ export const hopitalAPI = {
     apiFetch<any[]>(`${API.LOT1}/api/hopitaux/liste`),
 
   ajouter: (data: { nom: string; adresse: string; latitude: number; longitude: number }) =>
-    apiFetch<string>(`${API.LOT1}/api/hopitaux/ajouter`, {
+    apiFetch<any>(`${API.LOT1}/api/hopitaux/ajouter`, {
       method: 'POST',
       body: JSON.stringify(data),
     }),
@@ -79,25 +79,28 @@ export const hopitalAPI = {
 // SERVICES (Lot 1 - port 8081 & Lot 2 - port 8082)
 // ================================================================
 export const serviceAPI = {
-  // Depuis Lot 1
-  listerTous: () =>
-    apiFetch<any[]>(`${API.LOT1}/api/services`),
+  // Depuis Lot 1 (Administratif & Personnel)
+  listerTous: (hopitalId?: number) =>
+    apiFetch<any[]>(`${API.LOT1}/api/services${hopitalId ? `?hopitalId=${hopitalId}` : ''}`),
 
   getById: (id: number) =>
     apiFetch<any>(`${API.LOT1}/api/services/${id}`),
 
-  // Depuis Lot 2 (Patient)
+  creer: (data: any) =>
+    apiFetch<any>(`${API.LOT1}/api/services`, {
+      method: 'POST',
+      body: JSON.stringify({
+        nom: data.nom,
+        hopital: { id: data.hopitalId } // On envoie l'objet hôpital attendu par le Lot 1
+      }),
+    }),
+
+  // Depuis Lot 2 (Patient / Public)
   lister: () =>
     apiFetch<any[]>(`${API.LOT2}/api/services`),
 
   listerParHopital: (hopitalId: number) =>
     apiFetch<any[]>(`${API.LOT2}/api/services/hopital/${hopitalId}`),
-
-  creer: (data: any) =>
-    apiFetch<any>(`${API.LOT2}/api/services`, {
-      method: 'POST',
-      body: JSON.stringify(data),
-    }),
 
   modifier: (id: number, data: any) =>
     apiFetch<any>(`${API.LOT2}/api/services/${id}`, {
@@ -113,14 +116,17 @@ export const serviceAPI = {
 // PERSONNEL (Lot 1 - port 8081)
 // ================================================================
 export const personnelAPI = {
-  listerMedecins: () =>
-    apiFetch<any[]>(`${API.LOT1}/api/personnel/medecins`),
+  listerMedecins: (hopitalId?: number) =>
+    apiFetch<any[]>(`${API.LOT1}/api/personnel/medecins${hopitalId ? `?hopitalId=${hopitalId}` : ''}`),
 
   listerMedecinsParService: (serviceId: number) =>
     apiFetch<any[]>(`${API.LOT1}/api/personnel/medecins/service/${serviceId}`),
 
   listerAccueilParHopital: (hopitalId: number) =>
     apiFetch<any[]>(`${API.LOT1}/api/personnel/accueil/hopital/${hopitalId}`),
+
+  listerToutAccueil: (hopitalId?: number) => 
+    apiFetch<any[]>(`${API.LOT1}/api/personnel/accueil${hopitalId ? `?hopitalId=${hopitalId}` : ''}`),
 
   ajouterMedecin: (data: any) =>
     apiFetch<any>(`${API.LOT1}/api/personnel/medecins`, {

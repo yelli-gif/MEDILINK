@@ -15,7 +15,15 @@ public class HopitalService {
     private HopitalRepository hopitalRepository;
 
     public Hopital enregistrer(Hopital hopital) {
-        return hopitalRepository.save(hopital);
+        try {
+            Hopital saved = hopitalRepository.save(hopital);
+            System.out.println(">>> [DATABASE SUCCESS] Hopital créé avec succès. ID: " + saved.getId() + ", Nom: " + saved.getNom());
+            return saved;
+        } catch (Exception e) {
+            System.err.println(">>> [DATABASE ERROR] Échec de l'enregistrement de l'hôpital : " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     public List<Hopital> listerTous() {

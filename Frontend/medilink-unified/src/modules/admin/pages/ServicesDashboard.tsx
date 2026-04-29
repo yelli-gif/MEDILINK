@@ -75,49 +75,37 @@ const DEFAULT_SERVICES: MedicalService[] = [
 ];
 
 export default function ServicesDashboard() {
-  const [services, setServices] = useState<MedicalService[]>(DEFAULT_SERVICES);
+  const [services, setServices] = useState<MedicalService[]>([]);
+  const [servicesLoading, setServicesLoading] = useState(true);
   const [activeStep, setActiveStep] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   useEffect(() => {
     const loadServices = async () => {
+      setServicesLoading(true);
       try {
-        const apiServices = await serviceAPI.listerTous();
-        
-        const mapped: MedicalService[] = apiServices.map((s: any) => ({
+        const configRaw = localStorage.getItem('sanctuary_hospital_config');
+        const config = configRaw ? JSON.parse(configRaw) : null;
+        const hopitalId = config?.id;
+
+        const apiServices = await serviceAPI.listerTous(hopitalId);
+        const mapped: MedicalService[] = (apiServices || []).map((s: any) => ({
           id: s.id?.toString() || Math.random().toString(),
           name: s.nom || s.name,
-          category: s.categorie || 'Médecine Interne',
+          category: s.categorie || 'Médecine Générale',
           description: s.description || '',
-          hours: s.horaires || { 'Lun - Ven': { active: true, start: '08:00', end: '18:00' } },
+          hours: { 'Lun - Ven': { active: true, start: '08:00', end: '18:00' } },
           practitioner: s.responsable || '',
           staffCount: s.personnelCount || 0,
           status: 'normal',
           iconType: 'activity'
         }));
-
-        // Merge with defaults but prefer API data
-        const combined = [...mapped, ...DEFAULT_SERVICES];
-        const unique = combined.filter((s, index, self) => 
-          index === self.findIndex((t) => t.name === s.name)
-        );
-        setServices(unique);
+        setServices(mapped);
       } catch (err) {
         console.error("Erreur chargement services API:", err);
-        // Fallback to localStorage if API fails
-        const saved = localStorage.getItem('sanctuary_services');
-        if (saved) {
-          try {
-            const parsed = JSON.parse(saved) as MedicalService[];
-            const combined = [...parsed, ...DEFAULT_SERVICES];
-            const unique = combined.filter((s, index, self) => 
-              index === self.findIndex((t) => t.name === s.name)
-            );
-            setServices(unique);
-          } catch (e) {
-            setServices(DEFAULT_SERVICES);
-          }
-        }
+        setServices([]);
+      } finally {
+        setServicesLoading(false);
       }
     };
 
@@ -176,10 +164,10 @@ export default function ServicesDashboard() {
             </p>
           </div>
           <div className="flex flex-col gap-2 relative z-10">
-             <Link to="/services/add" className="w-full bg-[#0B56FA] hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-[12px] transition-all shadow-sm hover:scale-[1.02] active:scale-[0.98]">
+             <Link to="/admin/services/add" className="w-full bg-[#0B56FA] hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-[12px] transition-all shadow-sm hover:scale-[1.02] active:scale-[0.98]">
                 <PlusCircle className="w-4 h-4" /> Nouveau Service
              </Link>
-             <Link to="/staff/add" className="w-full bg-[#B8E1B0]/30 hover:bg-[#B8E1B0]/50 text-[#2D5A42] font-bold py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-[12px] transition-all hover:scale-[1.02] active:scale-[0.98]">
+             <Link to="/admin/staff/add" className="w-full bg-[#B8E1B0]/30 hover:bg-[#B8E1B0]/50 text-[#2D5A42] font-bold py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 text-[12px] transition-all hover:scale-[1.02] active:scale-[0.98]">
                 <UserPlus className="w-4 h-4" /> Nouveau Personnel
              </Link>
           </div>
@@ -259,7 +247,23 @@ export default function ServicesDashboard() {
           </div>
 
           <div className="space-y-4">
-            {services.map((service) => (
+            {servicesLoading ? (
+              <div className="flex flex-col items-center gap-3 py-16">
+                <div className="w-8 h-8 border-4 border-[#0B56FA]/20 border-t-[#0B56FA] rounded-full animate-spin"></div>
+                <p className="text-[14px] font-bold text-[#8C93A1]">Chargement des services...</p>
+              </div>
+            ) : services.length === 0 ? (
+              <div className="flex flex-col items-center gap-3 py-16 bg-white rounded-[24px] border border-[#E5E9F0]/80">
+                <div className="w-16 h-16 bg-[#F4F6FC] rounded-full flex items-center justify-center">
+                  <Briefcase className="w-7 h-7 text-[#8C93A1]" />
+                </div>
+                <p className="text-[15px] font-extrabold text-gray-900">Aucun service créé</p>
+                <p className="text-[13px] font-medium text-[#8C93A1]">Ajoutez votre premier service médical pour commencer.</p>
+                <Link to="/admin/services/add" className="mt-2 bg-[#0B56FA] text-white font-bold py-2.5 px-5 rounded-xl text-[13px] hover:bg-blue-700 transition-all">
+                  + Nouveau Service
+                </Link>
+              </div>
+            ) : services.map((service) => (
               <div key={service.id} className="bg-white rounded-[24px] p-5 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.02)] border border-[#E5E9F0]/80 flex items-center justify-between hover:shadow-md transition-shadow cursor-pointer relative overflow-hidden">
                 {service.status === 'warning' && (
                   <div className="absolute left-0 top-0 bottom-0 w-1 bg-red-500"></div>

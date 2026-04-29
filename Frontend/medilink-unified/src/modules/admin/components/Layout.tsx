@@ -129,7 +129,7 @@ export function Layout() {
   const handleSelectResult = (type: 'service' | 'staff') => {
     setIsSearchOpen(false);
     setSearchQuery('');
-    navigate(type === 'service' ? '/services' : '/staff');
+    navigate(type === 'service' ? '/admin/services' : '/admin/staff');
   };
 
   const handleTriggerEmergency = (details: EmergencyDetails) => {
@@ -183,42 +183,42 @@ export function Layout() {
           <div className="px-4 py-4 flex-1">
             <nav className="space-y-1.5">
               <Link
-                to="/profile"
-                className={`flex items-center gap-3 px-4 py-3.5 rounded-xl text-[14px] font-bold transition-all ${location.pathname === '/profile'
+                to="/admin/profile"
+                className={`flex items-center gap-3 px-4 py-3.5 rounded-xl text-[14px] font-bold transition-all ${location.pathname === '/admin/profile'
                     ? 'bg-[#EEF4FF] text-[#0B56FA]'
                     : 'text-[#5D6470] hover:text-gray-900 hover:bg-[#F4F6FC]'
                   }`}
               >
-                <LayoutDashboard className={`w-5 h-5 ${location.pathname === '/profile' ? 'text-[#0B56FA]' : 'text-[#8C93A1]'}`} />
+                <LayoutDashboard className={`w-5 h-5 ${location.pathname === '/admin/profile' ? 'text-[#0B56FA]' : 'text-[#8C93A1]'}`} />
                 Tableau de bord
               </Link>
               <Link
-                to="/services"
-                className={`flex items-center gap-3 px-4 py-3.5 rounded-xl text-[14px] font-bold transition-all ${location.pathname.startsWith('/services')
+                to="/admin/services"
+                className={`flex items-center gap-3 px-4 py-3.5 rounded-xl text-[14px] font-bold transition-all ${location.pathname.startsWith('/admin/services')
                     ? 'bg-[#EEF4FF] text-[#0B56FA]'
                     : 'text-[#5D6470] hover:text-gray-900 hover:bg-[#F4F6FC]'
                   }`}
               >
-                <BriefcaseMedical className={`w-5 h-5 ${location.pathname.startsWith('/services') ? 'text-[#0B56FA]' : 'text-[#8C93A1]'}`} />
+                <BriefcaseMedical className={`w-5 h-5 ${location.pathname.startsWith('/admin/services') ? 'text-[#0B56FA]' : 'text-[#8C93A1]'}`} />
                 Services
               </Link>
               <Link
-                to="/staff"
-                className={`flex items-center gap-3 px-4 py-3.5 rounded-xl text-[14px] font-bold transition-all ${location.pathname === '/staff' || location.pathname.startsWith('/staff/')
+                to="/admin/staff"
+                className={`flex items-center gap-3 px-4 py-3.5 rounded-xl text-[14px] font-bold transition-all ${location.pathname === '/admin/staff' || location.pathname.startsWith('/admin/staff/')
                     ? 'bg-[#EEF4FF] text-[#0B56FA]'
                     : 'text-[#5D6470] hover:text-gray-900 hover:bg-[#F4F6FC]'
                   }`}
               >
-                <Users className={`w-5 h-5 ${location.pathname.startsWith('/staff') ? 'text-[#0B56FA]' : 'text-[#8C93A1]'}`} /> Personnel
+                <Users className={`w-5 h-5 ${location.pathname.startsWith('/admin/staff') ? 'text-[#0B56FA]' : 'text-[#8C93A1]'}`} /> Personnel
               </Link>
               <Link
-                to="/settings"
-                className={`flex items-center gap-3 px-4 py-3.5 rounded-xl text-[14px] font-bold transition-all ${location.pathname === '/settings'
+                to="/admin/settings"
+                className={`flex items-center gap-3 px-4 py-3.5 rounded-xl text-[14px] font-bold transition-all ${location.pathname === '/admin/settings'
                     ? 'bg-[#EEF4FF] text-[#0B56FA]'
                     : 'text-[#5D6470] hover:text-gray-900 hover:bg-[#F4F6FC]'
                   }`}
               >
-                <Settings className={`w-5 h-5 ${location.pathname === '/settings' ? 'text-[#0B56FA]' : 'text-[#8C93A1]'}`} /> Paramètres
+                <Settings className={`w-5 h-5 ${location.pathname === '/admin/settings' ? 'text-[#0B56FA]' : 'text-[#8C93A1]'}`} /> Paramètres
               </Link>
             </nav>
           </div>
@@ -231,7 +231,7 @@ export function Layout() {
             >
               <AlertOctagon className="w-4 h-4" /> Alerte Urgence
             </button>
-            <Link to="/help" className="flex items-center gap-3 px-4 py-3 rounded-xl text-[14px] font-bold text-[#5D6470] hover:text-gray-900 hover:bg-[#F4F6FC] transition-colors">
+            <Link to="/admin/help" className="flex items-center gap-3 px-4 py-3 rounded-xl text-[14px] font-bold text-[#5D6470] hover:text-gray-900 hover:bg-[#F4F6FC] transition-colors">
               <CircleHelp className="w-5 h-5 text-[#8C93A1]" /> Centre d'aide
             </Link>
           </div>
@@ -241,7 +241,7 @@ export function Layout() {
         <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
           <header className="bg-transparent sticky top-0 z-30 w-full px-10 py-5 flex items-center justify-between">
             <div className="flex-1 max-w-xl" ref={searchRef}>
-              {location.pathname === '/services' && (
+              {location.pathname.startsWith('/admin/services') && (
                 <div className="relative hidden md:block w-full">
                   <Search className="w-4 h-4 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
                   <input
@@ -328,10 +328,10 @@ export function Layout() {
                 <History className="w-5 h-5" />
               </button>
               <Link
-                to="/notifications"
-                className={`relative transition-colors ${location.pathname === '/notifications' ? 'text-[#0B56FA]' : 'text-gray-500 hover:text-gray-900'}`}
+                to="/admin/notifications"
+                className={`relative transition-colors ${location.pathname === '/admin/notifications' ? 'text-[#0B56FA]' : 'text-gray-500 hover:text-gray-900'}`}
               >
-                <Bell className={`w-5 h-5 ${location.pathname === '/notifications' ? 'fill-current' : 'fill-none'}`} />
+                <Bell className={`w-5 h-5 ${location.pathname === '/admin/notifications' ? 'fill-current' : 'fill-none'}`} />
                 {unreadCount > 0 && (
                   <span className="absolute -top-1 -right-1.5 min-w-[18px] h-[18px] bg-red-500 border-2 border-[#F8F9FB] rounded-full text-white text-[9px] font-extrabold flex items-center justify-center px-1">
                     {unreadCount > 9 ? '9+' : unreadCount}
@@ -339,7 +339,7 @@ export function Layout() {
                 )}
               </Link>
               <Link
-                to="/admissions"
+                to="/admin/admissions"
                 className="bg-[#0B56FA] hover:bg-blue-700 text-white font-bold py-2 px-5 rounded-full flex items-center justify-center text-[13px] transition-colors ml-2 shadow-sm"
               >
                 Nouvelle Admission

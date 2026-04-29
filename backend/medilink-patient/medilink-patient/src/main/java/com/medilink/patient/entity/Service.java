@@ -30,8 +30,13 @@ public class Service {
     @Column(nullable = false, length = 100)
     private String nom;
 
-    @Column(name = "created_at", nullable = false, updatable = false, insertable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+    }
 
     // Relation ManyToOne avec Hopital (1..* → 1..1)
     @ManyToOne(fetch = FetchType.LAZY)

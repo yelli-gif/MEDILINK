@@ -36,9 +36,9 @@ public class SecurityConfig {
             .sessionManagement(session ->
                     session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                // Routes publiques (pas besoin de token)
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/hopitaux/ajouter").permitAll() // Permettre l'ajout initial sans token
+                .requestMatchers("/api/hopitaux/**").permitAll() 
+                .requestMatchers("/api/personnel/**").permitAll()
                 .requestMatchers("/api/services", "/api/services/**").permitAll()
                 .requestMatchers("/api/medicaments", "/api/medicaments/**").permitAll()
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()
@@ -46,8 +46,6 @@ public class SecurityConfig {
 
                 // Routes réservées à l'ADMIN
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                .requestMatchers("/api/hopitaux/**").hasRole("ADMIN")
-                .requestMatchers("/api/personnel/**").hasRole("ADMIN")
 
                 // Routes réservées au MEDECIN
                 .requestMatchers("/api/ordonnances/**").hasRole("MEDECIN")

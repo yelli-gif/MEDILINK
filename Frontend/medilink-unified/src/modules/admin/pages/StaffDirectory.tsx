@@ -10,6 +10,7 @@ import {
   ShieldCheck
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { personnelAPI, serviceAPI } from '../../../services/api';
 
 interface StaffMember {
@@ -71,7 +72,8 @@ const DEFAULT_STAFF: StaffMember[] = [
 ];
 
 export default function StaffDirectory() {
-  const [staff, setStaff] = useState<StaffMember[]>(DEFAULT_STAFF);
+  const [staff, setStaff] = useState<StaffMember[]>([]);
+  const [staffLoading, setStaffLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [availableServices, setAvailableServices] = useState<string[]>([]);
   const [selectedRole, setSelectedRole] = useState('Tous les Rôles');
@@ -85,43 +87,60 @@ export default function StaffDirectory() {
   const [barValues, setBarValues] = useState([78, 55, 34, 91]);
 
   useEffect(() => {
-    // 1. Load Staff from backend API (Lot 1 - port 8081)
+    // 1. Load real Staff from backend API (Lot 1 - port 8081)
     const loadStaff = async () => {
+      setStaffLoading(true);
       try {
-        const medecins = await personnelAPI.listerMedecins();
-        const apiStaff: StaffMember[] = medecins.map((m: any) => ({
+        const configRaw = localStorage.getItem('sanctuary_hospital_config');
+        const config = configRaw ? JSON.parse(configRaw) : null;
+        const hopitalId = config?.id;
+
+        const [medecins, accueil] = await Promise.all([
+          personnelAPI.listerMedecins(hopitalId),
+          personnelAPI.listerToutAccueil(hopitalId)
+        ]);
+        
+        const apiMedecins = (medecins || []).map((m: any) => ({
           id: m.id?.toString() || String(Math.random()),
-          name: m.nom ? `Dr. ${m.nom} ${m.prenom || ''}`.trim() : `Dr. ${m.id}`,
-          email: m.email || `medecin${m.id}@medilink.fr`,
-          role: m.specialite || 'Médecin',
+          name: m.prenom ? `Dr. ${m.prenom} ${m.nom || ''}`.trim() : `Dr. ${m.nom || m.id}`,
+          email: m.user?.email || `medecin${m.id}@medilink.fr`,
+          role: 'Médecin',
           department: m.service?.nom || 'Non assigné',
           status: 'Actif' as const,
         }));
-        // Merge API data with defaults (API data takes priority)
-        const combined = apiStaff.length > 0 ? [...apiStaff, ...DEFAULT_STAFF] : DEFAULT_STAFF;
-        const unique = combined.filter((s, index, self) => 
-          index === self.findIndex((t) => t.email === s.email)
-        );
-        setStaff(unique);
+
+        const apiAccueil = (accueil || []).map((a: any) => ({
+          id: a.id?.toString() || String(Math.random()),
+          name: `${a.prenom || ''} ${a.nom || ''}`.trim() || `Agent ${a.id}`,
+          email: a.user?.email || `accueil${a.id}@medilink.fr`,
+          role: 'Réception',
+          department: 'Accueil',
+          status: 'Actif' as const,
+        }));
+
+        setStaff([...apiMedecins, ...apiAccueil]);
       } catch (e) {
         console.error('Erreur chargement personnel:', e);
-        // Fallback to default staff if API fails
-        setStaff(DEFAULT_STAFF);
+        setStaff([]);
+      } finally {
+        setStaffLoading(false);
       }
     };
     loadStaff();
 
-    // 2. Load Services from backend API (Lot 1 - port 8081)
+    // 2. Load real Services from backend API (Lot 1 - port 8081)
     const loadServices = async () => {
-      const defaultServiceNames = ['Cardiologie', "Soins d'Urgence", 'Laboratoire de Pathologie'];
       try {
-        const services = await serviceAPI.listerTous();
+        const configRaw = localStorage.getItem('sanctuary_hospital_config');
+        const config = configRaw ? JSON.parse(configRaw) : null;
+        const hopitalId = config?.id;
+
+        const services = await serviceAPI.listerTous(hopitalId);
         const apiDepts = services.map((s: any) => s.nom || s.name).filter(Boolean);
-        const allDepts = [...new Set([...defaultServiceNames, ...apiDepts])];
-        setAvailableServices(allDepts.sort());
+        setAvailableServices(apiDepts.sort());
       } catch (e) {
         console.error('Erreur chargement services:', e);
-        setAvailableServices(defaultServiceNames.sort());
+        setAvailableServices([]);
       }
     };
     loadServices();
@@ -220,7 +239,14 @@ export default function StaffDirectory() {
             Gérez et surveillez l'ensemble du personnel des départements de l'hôpital.
           </p>
         </div>
-        <div className="flex bg-[#EAECEF] rounded-[14px] p-1 shadow-inner h-fit border border-[#D1D5DB]/20">
+        <div className="flex items-center gap-3">
+          <Link
+            to="/admin/staff/add"
+            className="flex items-center gap-2 bg-[#0B56FA] hover:bg-blue-700 text-white font-bold py-2.5 px-5 rounded-xl text-[13px] transition-all shadow-sm hover:scale-[1.02] active:scale-[0.98]"
+          >
+            + Ajouter Personnel
+          </Link>
+          <div className="flex bg-[#EAECEF] rounded-[14px] p-1 shadow-inner h-fit border border-[#D1D5DB]/20">
           <button 
             onClick={() => setViewMode('list')}
             className={`flex items-center gap-2 text-[13px] font-bold py-2 px-4 rounded-[10px] transition-all ${
@@ -241,6 +267,7 @@ export default function StaffDirectory() {
           >
             <LayoutGrid className="w-4 h-4" /> Vue Grille
           </button>
+          </div>
         </div>
       </div>
 
@@ -426,7 +453,27 @@ export default function StaffDirectory() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#E5E9F0]/80">
-                {currentStaffList.map((member) => (
+                {staffLoading ? (
+                  <tr><td colSpan={5} className="px-6 py-16 text-center">
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="w-8 h-8 border-4 border-[#0B56FA]/20 border-t-[#0B56FA] rounded-full animate-spin"></div>
+                      <p className="text-[14px] font-bold text-[#8C93A1]">Chargement du personnel...</p>
+                    </div>
+                  </td></tr>
+                ) : currentStaffList.length === 0 ? (
+                  <tr><td colSpan={5} className="px-6 py-16 text-center">
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="w-16 h-16 bg-[#F4F6FC] rounded-full flex items-center justify-center">
+                        <Users className="w-7 h-7 text-[#8C93A1]" />
+                      </div>
+                      <p className="text-[15px] font-extrabold text-gray-900">Aucun personnel enregistré</p>
+                      <p className="text-[13px] font-medium text-[#8C93A1]">Commencez par ajouter un médecin ou un agent d'accueil.</p>
+                      <Link to="/admin/staff/add" className="mt-2 bg-[#0B56FA] text-white font-bold py-2.5 px-5 rounded-xl text-[13px] hover:bg-blue-700 transition-all">
+                        + Ajouter du Personnel
+                      </Link>
+                    </div>
+                  </td></tr>
+                ) : currentStaffList.map((member) => (
                   <tr key={member.id} className="hover:bg-gray-50/50 transition-colors">
                     <td className={`px-6 ${isCompact ? 'py-2' : 'py-4'}`}>
                       <div className="flex items-center gap-4">

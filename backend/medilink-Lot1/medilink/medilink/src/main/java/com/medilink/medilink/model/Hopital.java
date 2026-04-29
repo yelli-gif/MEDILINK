@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.locationtech.jts.geom.Point;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -24,9 +25,17 @@ public class Hopital {
     @Column(nullable = false)
     private String adresse;
 
-    @Column(columnDefinition = "GEOMETRY", nullable = false)
+    @Column(columnDefinition = "geometry(Point, 4326)", nullable = true)
     @JsonIgnore // Temporaire : évite l'erreur 500 liée au format du Point JTS
     private Point localisation;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+    }
 
     @OneToMany(mappedBy = "hopital", cascade = CascadeType.ALL)
     @JsonIgnore // Empêche la boucle infinie dans le JSON

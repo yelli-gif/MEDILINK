@@ -118,16 +118,24 @@ export default function HospitalCreation() {
       });
 
       // 2. Créer l'hôpital
-      await hopitalAPI.ajouter({
+      const savedHopital = await hopitalAPI.ajouter({
         nom: name,
         adresse: address,
         latitude: parseFloat(selectedCoords.lat),
         longitude: parseFloat(selectedCoords.lon),
       });
 
-      // 3. Sauvegarder localement
+      // 3. Connexion automatique pour obtenir le token JWT
+      try {
+        const token = await authAPI.login(email, password);
+        localStorage.setItem('medilink_token', token);
+      } catch (loginErr) {
+        console.error('Erreur auto-login:', loginErr);
+      }
+
+      // 4. Sauvegarder localement la config hôpital
       const config = {
-        id: 'H-' + Date.now(),
+        id: savedHopital.id || 'H-' + Date.now(),
         name,
         address,
         overseer,

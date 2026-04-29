@@ -158,11 +158,16 @@ export default function AddService() {
     setDeploying(true);
 
     try {
+      // Récupérer l'ID de l'hôpital connecté
+      const configRaw = localStorage.getItem('sanctuary_hospital_config');
+      const config = configRaw ? JSON.parse(configRaw) : null;
+      const hopitalId = config?.id || 1;
+
       // Appel réel au backend (Lot 2 - port 8082)
       await serviceAPI.creer({
         nom: name,
         description: description || `Service de ${name}`,
-        hopitalId: 1, // TODO: récupérer l'ID de l'hôpital connecté
+        hopitalId: parseInt(hopitalId),
       });
     } catch (err) {
       console.error('Erreur création service backend:', err);
