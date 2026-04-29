@@ -6,6 +6,24 @@ const SidebarMedecin: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const [userProfile, setUserProfile] = React.useState({
+    name: 'Dr. Jean Dupont',
+    role: 'Médecin'
+  });
+
+  React.useEffect(() => {
+    const storedUser = localStorage.getItem('medilink_user');
+    if (storedUser) {
+      try {
+        const parsed = JSON.parse(storedUser);
+        setUserProfile({
+          name: parsed.name || 'Dr. Jean Dupont',
+          role: parsed.role || 'Médecin'
+        });
+      } catch (err) {}
+    }
+  }, []);
+
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutGrid size={20} />, path: '/medecin/dashboard' },
     { id: 'patients', label: 'Patients', icon: <Users size={20} />, path: '/medecin/patients' },
@@ -26,15 +44,15 @@ const SidebarMedecin: React.FC = () => {
         <span className="text-[10px] font-bold text-[#8B8D98] tracking-[0.2em] uppercase mt-2 ml-1">Espace Médecin</span>
       </div>
 
-      {/* Profile summary if needed (from Image 1) */}
+      {/* Profile summary */}
       <div className="px-6 mb-8">
         <div className="bg-[#F8FAFC] rounded-2xl p-4 flex items-center gap-3 border border-[#F1F5F9]">
           <div className="w-10 h-10 rounded-full bg-[#E6EDFF] flex items-center justify-center overflow-hidden border-2 border-white shadow-sm">
              <img src="https://i.pravatar.cc/150?u=doc" alt="Doctor" className="w-full h-full object-cover" />
           </div>
-          <div className="flex flex-col">
-            <span className="text-[13px] font-bold text-[#14152A]">Dr. Jean Dupont</span>
-            <span className="text-[11px] text-[#5A5C6B]">Chirurgien Dentiste</span>
+          <div className="flex flex-col overflow-hidden">
+            <span className="text-[13px] font-bold text-[#14152A] truncate">{userProfile.name}</span>
+            <span className="text-[11px] text-[#5A5C6B] truncate">{userProfile.role}</span>
           </div>
         </div>
       </div>

@@ -5,15 +5,8 @@ import { rendezVousAPI } from '../../../services/api';
 import { useNavigate } from 'react-router-dom';
 
 const MedecinDashboard: React.FC = () => {
-  const fallbackAppointments = [
-    { time: '09:30', status: 'EN COURS', patient: 'Marc Bernard', detail: 'Consultation de suivi — Hypertension', type: 'ANCIEN PATIENT', id: '#4521', action: 'Continuer' },
-    { time: '10:15', status: 'PROCHAIN', patient: 'Sophie Laurent', detail: 'Première consultation — Douleurs abdominales', type: 'NOUVEAU', id: '', action: 'Démarrer la consultation' },
-    { time: '11:00', status: 'ATTENTE', patient: 'Jean-Pierre Petit', detail: 'Renouvellement ordonnance', type: '', id: '', action: '' },
-    { time: '11:45', status: 'ATTENTE', patient: 'Claire Dubois', detail: 'Résultats d\'analyse biologique', type: '', id: '', action: '' },
-  ];
-
-  const [appointments, setAppointments] = useState(fallbackAppointments);
-  const [rdvCount, setRdvCount] = useState(12);
+  const [appointments, setAppointments] = useState<any[]>([]);
+  const [rdvCount, setRdvCount] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {

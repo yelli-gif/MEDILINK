@@ -93,52 +93,7 @@ const navItems: NavItem[] = [
   { id: 'history', label: 'Historique', icon: <IconHistory /> },
 ]
 
-const patients: Patient[] = [
-  {
-    id: '1', initials: 'MA', name: 'Marc Antoine', patientId: '#88291',
-    time: '09:30', doctor: 'Dr. Lemoine', service: 'Cardiologie', status: 'confirmed',
-  },
-  {
-    id: '2', initials: 'SB', name: 'Sophie Bernard', patientId: '#88302',
-    time: '10:00', doctor: 'Dr. Garcia', service: 'Médecine Générale', status: 'in-progress',
-    avatar: 'https://i.pravatar.cc/32?img=5',
-  },
-  {
-    id: '3', initials: 'JP', name: 'Julien Petit', patientId: '#88315',
-    time: '10:15', doctor: 'Dr. Fontaine', service: 'Radiologie', status: 'completed',
-  },
-  {
-    id: '4', initials: 'AM', name: 'Alice Martin', patientId: '#88327',
-    time: '10:45', doctor: 'Dr. Lemoine', service: 'Cardiologie', status: 'confirmed',
-  },
-  {
-    id: '5', initials: 'PD', name: 'Pierre Dubois', patientId: '#88340',
-    time: '11:00', doctor: 'Dr. Rousseau', service: 'Neurologie', status: 'confirmed',
-  },
-  {
-    id: '6', initials: 'CL', name: 'Camille Laurent', patientId: '#88354',
-    time: '11:15', doctor: 'Dr. Moreau', service: 'Pédiatrie', status: 'in-progress',
-    avatar: 'https://i.pravatar.cc/32?img=9',
-  },
-  {
-    id: '7', initials: 'NB', name: 'Nicolas Blanc', patientId: '#88368',
-    time: '11:30', doctor: 'Dr. Garcia', service: 'Médecine Générale', status: 'confirmed',
-  },
-  {
-    id: '8', initials: 'ER', name: 'Emma Roux', patientId: '#88379',
-    time: '11:45', doctor: 'Dr. Fontaine', service: 'Radiologie', status: 'completed',
-    avatar: 'https://i.pravatar.cc/32?img=16',
-  },
-  {
-    id: '9', initials: 'LM', name: 'Luc Marchand', patientId: '#88392',
-    time: '12:00', doctor: 'Dr. Lemoine', service: 'Cardiologie', status: 'confirmed',
-  },
-  {
-    id: '10', initials: 'IT', name: 'Isabelle Thomas', patientId: '#88405',
-    time: '12:15', doctor: 'Dr. Rousseau', service: 'Neurologie', status: 'in-progress',
-    avatar: 'https://i.pravatar.cc/32?img=47',
-  },
-]
+const patients: Patient[] = []
 
 const statusLabel: Record<Patient['status'], string> = {
   confirmed: 'Confirmé',
@@ -207,19 +162,23 @@ export default function Dashboard() {
   const [patientsList, setPatientsList] = useState<Patient[]>(patients)
   const navigate = useNavigate()
 
-  // Charger les données réelles depuis le backend
+  const [userProfile, setUserProfile] = useState({
+    name: 'Jean Dupont',
+    role: 'Réceptionniste'
+  });
+
   useEffect(() => {
-    const loadRealData = async () => {
+    const storedUser = localStorage.getItem('medilink_user');
+    if (storedUser) {
       try {
-        // TODO: quand l'endpoint GET /api/rendez-vous/date/{date} sera dispo
-        // on pourra charger les vrais RDV du jour ici
-        // Pour l'instant on garde les données statiques
-      } catch (err) {
-        console.error('Erreur chargement données réception:', err);
-      }
-    };
-    loadRealData();
-  }, [selectedDate]);
+        const parsed = JSON.parse(storedUser);
+        setUserProfile({
+          name: parsed.name || 'Jean Dupont',
+          role: parsed.role || 'Réceptionniste'
+        });
+      } catch (err) {}
+    }
+  }, []);
 
   const formatDate = (dateStr: string) => {
     const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long', year: 'numeric' }
@@ -284,7 +243,7 @@ export default function Dashboard() {
         </nav>
 
         <div className="sidebar__emergency">
-          <button className="hi-btn-emergency" onClick={() => navigate('/emergency-intake')}>
+          <button className="btn-emergency" onClick={() => navigate('/emergency-intake')}>
             Ajouter sur place
           </button>
         </div>
@@ -338,12 +297,12 @@ export default function Dashboard() {
             <button className="icon-btn" aria-label="Notifications" onClick={() => navigate('/notifications')}><IconBell /></button>
             <button className="icon-btn" aria-label="Aide" onClick={() => navigate('/help')}><IconHelp /></button>
             <div className="topbar__divider" />
-            <div className="topbar__user">
+            <div className="topbar__user" onClick={() => navigate('/connexion')} style={{ cursor: 'pointer' }}>
               <div className="topbar__user-info">
-                <span className="user-name">Jean Dupont</span>
-                <span className="user-role">Réceptionniste</span>
+                <span className="user-name">{userProfile.name}</span>
+                <span className="user-role">{userProfile.role}</span>
               </div>
-              <div className="user-avatar">JD</div>
+              <div className="user-avatar">{userProfile.name.substring(0, 2).toUpperCase()}</div>
             </div>
           </div>
         </header>
@@ -367,9 +326,8 @@ export default function Dashboard() {
                 </svg>
               }
               iconBg="#eff6ff"
-              value="124"
+              value={patientsList.length}
               label="TOTAL DEMANDES"
-              badge="+12% vs hier"
             />
             <StatCard
               icon={
@@ -378,8 +336,8 @@ export default function Dashboard() {
                 </svg>
               }
               iconBg="#f0f9ff"
-              value="18"
-              label="EN ROUTE"
+              value={patientsList.filter(p => p.status === 'confirmed').length}
+              label="EN ATTENTE"
             />
             <StatCard
               icon={
@@ -388,7 +346,7 @@ export default function Dashboard() {
                 </svg>
               }
               iconBg="#f0fdf4"
-              value="32"
+              value={patientsList.filter(p => p.status === 'in-progress').length}
               label="SUR PLACE"
             />
             <StatCard
@@ -398,8 +356,8 @@ export default function Dashboard() {
                 </svg>
               }
               iconBg="#faf5ff"
-              value="09"
-              label="EN CONSULTATION"
+              value={patientsList.filter(p => p.status === 'completed').length}
+              label="TERMINÉS"
             />
           </div>
 

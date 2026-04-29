@@ -7,6 +7,24 @@ interface MedecinLayoutProps {
 }
 
 const MedecinLayout: React.FC<MedecinLayoutProps> = ({ children }) => {
+  const [userProfile, setUserProfile] = React.useState({
+    name: 'Dr. Dupont',
+    role: 'Médecin'
+  });
+
+  React.useEffect(() => {
+    const storedUser = localStorage.getItem('medilink_user');
+    if (storedUser) {
+      try {
+        const parsed = JSON.parse(storedUser);
+        setUserProfile({
+          name: parsed.name || 'Dr. Dupont',
+          role: parsed.role || 'Médecin'
+        });
+      } catch (err) {}
+    }
+  }, []);
+
   return (
     <div className="flex min-h-screen bg-[#F8FAFC] font-sans">
       <SidebarMedecin />
@@ -38,8 +56,8 @@ const MedecinLayout: React.FC<MedecinLayoutProps> = ({ children }) => {
 
             <div className="flex items-center gap-3 pl-2">
               <div className="text-right hidden sm:block">
-                <p className="text-[13px] font-bold text-[#14152A]">Dr. Dupont</p>
-                <p className="text-[11px] text-[#8B8D98]">Chirurgien Dentiste</p>
+                <p className="text-[13px] font-bold text-[#14152A]">{userProfile.name}</p>
+                <p className="text-[11px] text-[#8B8D98]">{userProfile.role}</p>
               </div>
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#0055FF] to-[#0047D6] flex items-center justify-center border-2 border-white shadow-sm overflow-hidden">
                  <img src="https://i.pravatar.cc/150?u=doc" alt="Doctor" className="w-full h-full object-cover" />
