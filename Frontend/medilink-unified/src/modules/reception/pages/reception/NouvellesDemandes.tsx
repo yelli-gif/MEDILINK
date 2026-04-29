@@ -17,7 +17,7 @@ const IconDashboard = () => (
   </svg>
 )
 const IconPlus = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="16" /><line x1="8" y1="12" x2="16" y2="12" />
   </svg>
 )
@@ -82,15 +82,19 @@ type Request = {
 
 // ── Composants internes ──────────────────────────────────────────────────────
 
-function StatCard({ label, value, sub, subColor, badge }: { label: string; value: string; sub?: string; subColor?: string; badge?: string }) {
+function StatCard({ label, value, badge, badgeType, isRed, sub }: { label: string; value: string; badge?: string; badgeType?: 'blue' | 'light'; isRed?: boolean; sub?: string }) {
   return (
     <div className="hi-stat-card">
-      <div className="hi-stat-card__label">
-        {label}
-        {badge && <span className="hi-stat-card__badge">{badge}</span>}
+      <span className="hi-stat-label">{label}</span>
+      <div className="hi-stat-content">
+        <span className={`hi-stat-value ${isRed ? 'hi-stat-value--red' : ''}`}>{value}</span>
+        {badge && (
+          <span className={`hi-stat-badge ${badgeType === 'blue' ? 'hi-stat-badge--blue' : 'hi-stat-badge--light'}`}>
+            {badge}
+          </span>
+        )}
       </div>
-      <div className="hi-stat-card__value">{value}</div>
-      {sub && <div className="hi-stat-card__sub" style={{ color: subColor }}>{sub}</div>}
+      {sub && <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px' }}>{sub}</div>}
     </div>
   )
 }
@@ -98,14 +102,15 @@ function StatCard({ label, value, sub, subColor, badge }: { label: string; value
 // ── Composant Principal ───────────────────────────────────────────────────────
 
 export default function NewRequests() {
-  const [activeNav, setActiveNav] = useState('new-requests')
+  const [activeNav] = useState('new-requests')
   const [search, setSearch] = useState('')
   const [requests, setRequests] = useState<Request[]>([])
   const [loading, setLoading] = useState(true)
   const [isValidating, setIsValidating] = useState<string | null>(null)
   const [lastTicket, setLastTicket] = useState<any>(null)
+  const [showModal, setShowModal] = useState(false)
   const [userProfile, setUserProfile] = useState<any>(null)
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
+  const [selectedDate] = useState(new Date().toISOString().split('T')[0])
   
   const navigate = useNavigate()
 
@@ -115,7 +120,7 @@ export default function NewRequests() {
       const parsed = JSON.parse(storedUser)
       setUserProfile(parsed)
       
-      const hId = parsed.hopitalId || parsed.medecinId || parsed.personnelId || parsed.id;
+      const hId = parsed.hopitalId || parsed.personnelId || parsed.id;
       if (hId) {
         fetchAppointments(parseInt(hId.toString()))
       } else {
@@ -131,17 +136,16 @@ export default function NewRequests() {
       setLoading(true)
       const data = await rendezVousAPI.parHopital(hopitalId)
       
-      // On filtre pour ne garder que les RDV du jour
       const today = new Date().toISOString().split('T')[0]
       const mapped: Request[] = data
         .filter((rdv: any) => rdv.date === today)
         .map((rdv: any) => ({
           id: rdv.id.toString(),
           patientName: rdv.patient ? `${rdv.patient.prenom} ${rdv.patient.nom}` : 'Patient Inconnu',
-          urgency: rdv.description?.toLowerCase().includes('urgent') ? 'urgent' : 'normal',
+          urgency: rdv.description?.toLowerCase().includes('urgent') || rdv.priorite === 'HAUTE' ? 'urgent' : 'normal',
           serviceId: rdv.service?.id || 0,
           serviceName: rdv.service?.nom || 'Service Inconnu',
-          time: rdv.heure.substring(0, 5),
+          time: rdv.heure ? rdv.heure.substring(0, 5) : '--:--',
           description: rdv.description || 'Consultation planifiée',
           rendezVousId: rdv.id
         }))
@@ -156,16 +160,16 @@ export default function NewRequests() {
   const handleValidate = async (request: Request) => {
     setIsValidating(request.id)
     try {
-      // Appel API pour marquer l'arrivée et générer le ticket
       const ticket = await accueilAPI.arriveePatient(request.rendezVousId, request.serviceId)
-      setLastTicket({
+      const newTicket = {
         ...ticket,
         patientName: request.patientName,
         serviceName: request.serviceName,
         time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
-      })
+      };
+      setLastTicket(newTicket)
+      setShowModal(true)
       
-      // Retirer de la liste
       setRequests(prev => prev.filter(r => r.id !== request.id))
     } catch (err) {
       console.error('Erreur validation:', err)
@@ -180,7 +184,7 @@ export default function NewRequests() {
     r.serviceName.toLowerCase().includes(search.toLowerCase())
   )
 
-  const formatDate = (dateStr: string) => {
+  const formatDateLong = (dateStr: string) => {
     const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long', year: 'numeric' }
     return new Date(dateStr).toLocaleDateString('fr-FR', options)
   }
@@ -222,13 +226,13 @@ export default function NewRequests() {
         </nav>
 
         <div className="hi-sidebar__emergency">
-          <button className="hi-btn-emergency" onClick={() => navigate('/reception/emergency-intake')}>
+          <button className="hi-btn-emergency" onClick={() => navigate('/reception/requests')}>
             Ajouter sur place
           </button>
         </div>
 
         <div className="hi-sidebar__footer">
-          <div className="hi-sidebar__footer-box">
+          <div className="hi-footer-box">
             <button className="hi-footer-link" onClick={() => navigate('/reception/settings')}>
               <IconSettings /> <span>Paramètres</span>
             </button>
@@ -239,47 +243,37 @@ export default function NewRequests() {
         </div>
       </aside>
 
-      <main className="hi-main-content">
+      <main className="hi-main">
         <header className="hi-topbar">
-          <div className="hi-topbar__date" style={{ position: 'relative', cursor: 'pointer' }}>
-            <span onClick={() => (document.getElementById('nd-date-picker') as HTMLInputElement)?.showPicker()}>
-              {formatDate(selectedDate)}
-            </span>
-            <input 
-              id="nd-date-picker"
-              type="date" 
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              style={{ 
-                position: 'absolute', 
-                opacity: 0, 
-                pointerEvents: 'none',
-                width: 0,
-                height: 0
-              }} 
-            />
+          <div className="hi-date-badge">
+             {formatDateLong(selectedDate)}
           </div>
 
           <div className="hi-topbar__search">
             <IconSearch />
             <input
               type="text"
-              placeholder="Rechercher un dossier patient..."
+              placeholder="Rechercher un patient ou une demande..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
 
           <div className="hi-topbar__actions">
-            <button className="hi-icon-btn" onClick={() => navigate('/reception/notifications')}><IconBell /></button>
-            <button className="hi-icon-btn" onClick={() => navigate('/reception/help')}><IconHelp /></button>
-            <div className="hi-topbar__divider" />
-            <div className="hi-topbar__user" onClick={() => navigate('/connexion')} style={{ cursor: 'pointer' }}>
-              <div className="hi-topbar__user-info">
-                <span className="hi-user-name">{userProfile?.name || 'Chargement...'}</span>
-                <span className="hi-user-role">Réceptionniste</span>
+            <button className="hi-notif-btn">
+              <IconBell />
+              <span className="hi-notif-dot" />
+            </button>
+            <button className="hi-notif-btn"><IconHelp /></button>
+            <div className="hi-topbar__divider" style={{ width: '1px', height: '24px', background: '#e2e8f0', margin: '0 8px' }} />
+            <div className="hi-topbar__user" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div className="hi-topbar__user-info" style={{ textAlign: 'right' }}>
+                <div className="hi-user-name">{userProfile?.name || 'Utilisateur'}</div>
+                <div className="hi-user-role" style={{ fontSize: '10px', color: '#94a3b8' }}>Réceptionniste</div>
               </div>
-              <div className="hi-user-avatar">{userProfile?.name?.substring(0,2).toUpperCase() || '...'}</div>
+              <div className="hi-user-circle">
+                {userProfile?.name?.substring(0,2).toUpperCase() || 'JD'}
+              </div>
             </div>
           </div>
         </header>
@@ -296,113 +290,157 @@ export default function NewRequests() {
             <StatCard 
               label="TOTAL EN ATTENTE" 
               value={String(requests.length).padStart(2, '0')} 
-              sub="Rendez-vous du jour" 
-              subColor="#3b82f6" 
+              badge="+5% aujourd'hui"
+              badgeType="blue"
             />
             <StatCard 
               label="CAS URGENTS" 
               value={String(requests.filter(r => r.urgency === 'urgent').length).padStart(2, '0')} 
-              badge={requests.filter(r => r.urgency === 'urgent').length > 0 ? "Action requise" : "Aucun"} 
+              isRed={true}
+              badge="Action requise"
+              badgeType="light"
             />
             <StatCard 
               label="FLUX STANDARD" 
               value={String(requests.filter(r => r.urgency === 'normal').length).padStart(2, '0')} 
-              sub="En attente de validation" 
+              badge="Attente moy. : 12 min"
+              badgeType="light"
             />
           </div>
 
           <div className="hi-content-layout">
             <div className="hi-requests-list">
               <div className="hi-list-header">
-                <h2 className="hi-section-title">En attente de validation</h2>
-                <div className="hi-list-filters">
-                   <button className="hi-filter-pill hi-filter-pill--active">Priorité</button>
-                   <button className="hi-filter-pill">Heure</button>
+                <h2 className="hi-list-title">En attente de validation</h2>
+                <div className="hi-sort-tabs">
+                   <button className="hi-sort-tab hi-sort-tab--active">Priorité</button>
+                   <button className="hi-sort-tab">Heure</button>
                 </div>
               </div>
               
-              {loading ? (
-                <div className="hi-empty-state">
-                  <p>Chargement des demandes...</p>
-                </div>
-              ) : filtered.length === 0 ? (
-                <div className="hi-empty-state">
-                  <p>Aucune nouvelle demande pour le moment.</p>
-                </div>
-              ) : (
-                filtered.map(req => (
-                   <div key={req.id} className="hi-request-card">
-                    <div className="hi-request-card__avatar">
-                      <span>{req.patientName.substring(0, 1)}</span>
-                      {req.urgency === 'urgent' && <div className="hi-urgency-indicator" />}
-                    </div>
-                    <div className="hi-request-card__info">
-                      <div className="hi-request-header">
-                        <span className="hi-request-name">{req.patientName}</span>
-                        {req.urgency === 'urgent' && <span className="hi-tag-urgent">URGENT</span>}
-                      </div>
-                      <div className="hi-request-meta">
-                        {req.serviceName} • {req.time}
-                      </div>
-                      <div className="hi-request-desc">{req.description}</div>
-                    </div>
-                    <button 
-                      className="hi-btn-validate" 
-                      onClick={() => handleValidate(req)}
-                      disabled={isValidating === req.id}
-                    >
-                      {isValidating === req.id ? 'Génération...' : 'Valider la demande'}
-                    </button>
-                    <button className="hi-btn-options">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
-                    </button>
+              <div className="hi-req-list">
+                {loading ? (
+                  <div className="hi-empty-state" style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>
+                    Chargement des demandes...
                   </div>
-                ))
-              )}
+                ) : filtered.length === 0 ? (
+                  <div className="hi-empty-state" style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>
+                    Aucune nouvelle demande pour le moment.
+                  </div>
+                ) : (
+                  filtered.map(req => (
+                    <div key={req.id} className="hi-req-card">
+                      <div className="hi-req-card__indicator">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
+                      </div>
+                      <div className="hi-req-card__body">
+                        <div className="hi-req-card__top">
+                          <span className="hi-req-name">{req.patientName}</span>
+                          {req.urgency === 'urgent' && <span className="hi-badge-urgent">URGENT</span>}
+                        </div>
+                        <div className="hi-req-meta">
+                          {req.serviceName} • {req.time}
+                        </div>
+                        <div className="hi-req-notes">{req.description}</div>
+                      </div>
+                      <div className="hi-req-card__actions">
+                        <button 
+                          className="hi-btn-validate" 
+                          onClick={() => handleValidate(req)}
+                          disabled={isValidating === req.id}
+                        >
+                          {isValidating === req.id ? 'Génération...' : 'Valider la demande'}
+                        </button>
+                        <button className="hi-btn-more">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
 
             <div className="hi-side-panels">
-              <div className="hi-ticket-gen">
-                <h3 className="hi-panel-title">Génération de ticket</h3>
-                <div className="hi-step">
-                  <div className="hi-step-num">1</div>
-                  <p>Vérifier les symptômes et l'urgence clinique du service.</p>
-                </div>
-                <div className="hi-step">
-                  <div className="hi-step-num">2</div>
-                  <p>Cliquez sur « Valider » pour générer le ticket de visite.</p>
+              <div className="hi-process-box">
+                <h3 className="hi-process-title">Génération de ticket</h3>
+                <div className="hi-process-steps">
+                  <div className="hi-process-step">
+                    <div className="hi-step-number">1</div>
+                    <p>Vérifier les symptômes et l'urgence clinique du service.</p>
+                  </div>
+                  <div className="hi-process-step">
+                    <div className="hi-step-number">2</div>
+                    <p>Cliquez sur « Valider » pour générer le ticket de visite.</p>
+                  </div>
                 </div>
               </div>
 
-              <div className="hi-last-ticket">
-                <div className="hi-last-ticket__header">
-                  <span className="hi-panel-title">DERNIER TICKET</span>
-                  {lastTicket && <span className="hi-tag-generated">Généré à {lastTicket.time}</span>}
+              <div className="hi-ticket-module">
+                <div className="hi-ticket-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+                  <span className="hi-ticket-label">DERNIER TICKET</span>
+                  {lastTicket && <span className="hi-ticket-time">Généré à {lastTicket.time}</span>}
                 </div>
                 
-                {lastTicket ? (
-                  <div className="hi-ticket-preview">
-                    <div className="hi-qr-box">
-                      <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#14152A" strokeWidth="1.5">
-                        <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" />
-                        <rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" />
-                        <rect x="7" y="7" width="1" height="1" /><rect x="16" y="7" width="1" height="1" />
-                        <rect x="7" y="16" width="1" height="1" /><rect x="16" y="16" width="1" height="1" />
-                      </svg>
-                    </div>
-                    <div className="hi-ticket-patient">{lastTicket.patientName}</div>
-                    <div className="hi-ticket-meta">Ticket #{lastTicket.numero || '772-B'} • {lastTicket.serviceName}</div>
+                <div className="hi-ticket-card">
+                  <div className="hi-ticket-qr">
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#1e293b" strokeWidth="1.5">
+                      <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" />
+                      <rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" />
+                      <rect x="7" y="7" width="1" height="1" /><rect x="16" y="7" width="1" height="1" />
+                      <rect x="7" y="16" width="1" height="1" /><rect x="16" y="16" width="1" height="1" />
+                    </svg>
                   </div>
-                ) : (
-                  <div className="hi-ticket-placeholder">
-                    <p>Les tickets générés apparaîtront ici.</p>
+                  <div className="hi-ticket-name">{lastTicket ? lastTicket.patientName : '---'}</div>
+                  <div className="hi-ticket-meta">
+                    {lastTicket ? `Ticket #${lastTicket.numeroFile || '772-B'} • ${lastTicket.serviceName}` : 'Attente de validation'}
                   </div>
-                )}
+                </div>
               </div>
             </div>
           </div>
         </div>
       </main>
+
+      {showModal && lastTicket && (
+        <div className="hi-modal-overlay">
+          <div className="hi-modal-content">
+            <button className="hi-modal-close-icon" onClick={() => setShowModal(false)}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+            <div className="hi-modal-header">
+              <div className="hi-success-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <h2 className="hi-modal-title">Ticket Généré !</h2>
+              <p className="hi-modal-subtitle">Le patient a été ajouté à la file d'attente avec succès.</p>
+            </div>
+            
+            <div className="hi-ticket-preview">
+              <div className="hi-ticket-card hi-ticket-card--preview">
+                <div className="hi-ticket-qr">
+                  <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#1e293b" strokeWidth="1.5">
+                    <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" />
+                    <rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" />
+                  </svg>
+                </div>
+                <div className="hi-ticket-name">{lastTicket.patientName}</div>
+                <div className="hi-ticket-meta">Ticket #{lastTicket.numeroFile || '772-B'} • {lastTicket.serviceName}</div>
+              </div>
+            </div>
+
+            <div className="hi-modal-actions">
+              <button className="hi-btn-print-full" onClick={() => window.print()}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                Imprimer le ticket
+              </button>
+              <button className="hi-btn-close" onClick={() => setShowModal(false)}>Fermer</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

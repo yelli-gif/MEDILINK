@@ -4,6 +4,7 @@ import com.medilink.medilinklot3.entity.FileAttente;
 import com.medilink.medilinklot3.entity.Ticket;
 import com.medilink.medilinklot3.repository.FileAttenteRepository;
 import com.medilink.medilinklot3.repository.TicketRepository;
+import com.medilink.medilinklot3.enums.StatutTicket;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -51,6 +52,7 @@ public class TicketService {
         ticket.setNumeroFile(file.getNumeroSuivant());
         ticket.setRendezVousId(rendezVousId);
         ticket.setFileAttente(file);
+        ticket.setStatut(StatutTicket.EN_ATTENTE);
 
         file.setNumeroSuivant(file.getNumeroSuivant() + 1);
         fileAttenteRepository.save(file);

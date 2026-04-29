@@ -1,5 +1,6 @@
 package com.medilink.medilinklot3.entity;
 
+import com.medilink.medilinklot3.enums.StatutTicket;
 import jakarta.persistence.*;
 
 @Entity
@@ -19,6 +20,10 @@ public class Ticket {
     @ManyToOne(optional = false)
     @JoinColumn(name = "file_attente_id")
     private FileAttente fileAttente;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "statut")
+    private StatutTicket statut;
 
     // ===== GETTERS / SETTERS =====
 
@@ -52,5 +57,13 @@ public class Ticket {
 
     public void setFileAttente(FileAttente fileAttente) {
         this.fileAttente = fileAttente;
+    }
+
+    public StatutTicket getStatut() {
+        return statut;
+    }
+
+    public void setStatut(StatutTicket statut) {
+        this.statut = statut;
     }
 }

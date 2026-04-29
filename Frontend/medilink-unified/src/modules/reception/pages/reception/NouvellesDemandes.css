@@ -94,21 +94,14 @@
 }
 
 .hi-nav-item--active {
-  background: #f1f5f9;
-  color: #1e293b;
+  background: #2563eb;
+  color: #fff;
   font-weight: 600;
-  position: relative;
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2);
 }
 
-.hi-nav-item--active::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 15%;
-  height: 70%;
-  width: 3px;
-  background: #2563eb;
-  border-radius: 0 4px 4px 0;
+.hi-nav-item--active .hi-nav-item__icon svg {
+  color: #fff;
 }
 
 .hi-sidebar__emergency {
@@ -688,11 +681,8 @@
 }
 
 /* ── Ticket Module ── */
-.hi-ticket-header {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 20px;
-  padding: 0 8px;
+.hi-ticket-module {
+  background: transparent;
 }
 
 .hi-ticket-label {

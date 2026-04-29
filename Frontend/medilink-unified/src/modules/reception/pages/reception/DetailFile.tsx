@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { serviceAPI, rendezVousAPI } from '../../../../services/api'
 import './DetailFile.css'
 
 const IconSearch = () => (
@@ -16,7 +17,6 @@ const IconSupport = () => (
   </svg>
 )
 
-// ── Icônes ───────────────────────────────────────────────────────────────────
 const IconDashboard = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" />
@@ -58,7 +58,6 @@ const IconHelp = () => (
     <circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><line x1="12" y1="17" x2="12.01" y2="17" />
   </svg>
 )
-// -- Unused IconSearch removed --
 const IconChevron = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="9 18 15 12 9 6" />
@@ -111,81 +110,6 @@ const IconBarChart = () => (
   </svg>
 )
 
-// ── Types ──────────────────────────────────────────────────────────────────────
-type Priority = 'urgent' | 'regulier'
-
-type Patient = {
-  id: string
-  name: string
-  priority: Priority
-  arrival: string
-  reason: string
-  avatar?: string
-}
-
-type ServiceData = {
-  name: string
-  avgWait: string
-  patients: Patient[]
-}
-
-// ── Données Mock ─────────────────────────────────────────────────────────────
-const serviceDatabase: Record<string, ServiceData> = {
-  '1': {
-    name: 'Cardiologie', avgWait: '24 min',
-    patients: [
-      { id: 'p1', name: 'Geneviève Martin', priority: 'urgent', arrival: '08:45', reason: 'Contrôle post-opératoire', avatar: 'https://randomuser.me/api/portraits/women/68.jpg' },
-      { id: 'p2', name: 'Marc-Antoine Lefebvre', priority: 'regulier', arrival: '09:12', reason: "ECG d'effort", avatar: 'https://randomuser.me/api/portraits/men/32.jpg' },
-      { id: 'p3', name: 'Sofia Rodriguez', priority: 'regulier', arrival: '09:30', reason: 'Suivi tension artérielle', avatar: 'https://randomuser.me/api/portraits/women/45.jpg' },
-      { id: 'p4', name: 'Jean-Pierre Dubois', priority: 'regulier', arrival: '09:45', reason: 'Première consultation', avatar: 'https://randomuser.me/api/portraits/men/54.jpg' },
-    ],
-  },
-  '2': {
-    name: 'Dermatologie', avgWait: '32 min',
-    patients: [
-      { id: 'p1', name: 'Amina Benali', priority: 'urgent', arrival: '09:00', reason: 'Réaction allergique sévère', avatar: 'https://randomuser.me/api/portraits/women/29.jpg' },
-      { id: 'p2', name: 'Thomas Girard', priority: 'regulier', arrival: '09:20', reason: 'Contrôle eczéma', avatar: 'https://randomuser.me/api/portraits/men/18.jpg' },
-      { id: 'p3', name: 'Claire Moreau', priority: 'regulier', arrival: '09:40', reason: 'Suivi psoriasis', avatar: 'https://randomuser.me/api/portraits/women/53.jpg' },
-      { id: 'p4', name: 'Bastien Roux', priority: 'regulier', arrival: '10:00', reason: 'Analyse lésion cutanée', avatar: 'https://randomuser.me/api/portraits/men/41.jpg' },
-    ],
-  },
-  '3': {
-    name: 'Neurologie', avgWait: '18 min',
-    patients: [
-      { id: 'p1', name: 'Hélène Dupont', priority: 'urgent', arrival: '09:15', reason: 'Migraine invalidante', avatar: 'https://randomuser.me/api/portraits/women/62.jpg' },
-      { id: 'p2', name: 'Olivier Blanc', priority: 'regulier', arrival: '09:35', reason: 'Suivi épilepsie', avatar: 'https://randomuser.me/api/portraits/men/25.jpg' },
-      { id: 'p3', name: 'Yasmine Aouf', priority: 'regulier', arrival: '09:55', reason: 'Bilan neurologique', avatar: 'https://randomuser.me/api/portraits/women/37.jpg' },
-    ],
-  },
-  '4': {
-    name: 'Pédiatrie', avgWait: '12 min',
-    patients: [
-      { id: 'p1', name: 'Lucas Petit', priority: 'regulier', arrival: '09:00', reason: 'Vaccination', avatar: 'https://randomuser.me/api/portraits/men/11.jpg' },
-      { id: 'p2', name: 'Emma Fontaine', priority: 'urgent', arrival: '09:10', reason: 'Fièvre persistante', avatar: 'https://randomuser.me/api/portraits/women/5.jpg' },
-      { id: 'p3', name: 'Noah Bernard', priority: 'regulier', arrival: '09:25', reason: 'Contrôle pédiatrique', avatar: 'https://randomuser.me/api/portraits/men/7.jpg' },
-      { id: 'p4', name: 'Léa Carpentier', priority: 'regulier', arrival: '09:40', reason: 'Suivi post-grippe', avatar: 'https://randomuser.me/api/portraits/women/21.jpg' },
-    ],
-  },
-  '5': {
-    name: 'Ophtalmologie', avgWait: '20 min',
-    patients: [
-      { id: 'p1', name: 'Martine Leroy', priority: 'regulier', arrival: '09:05', reason: 'Bilan visuel annuel', avatar: 'https://randomuser.me/api/portraits/women/72.jpg' },
-      { id: 'p2', name: 'Patrick Simon', priority: 'urgent', arrival: '09:30', reason: "Corps étranger dans l'œil", avatar: 'https://randomuser.me/api/portraits/men/47.jpg' },
-      { id: 'p3', name: 'Julie Marchand', priority: 'regulier', arrival: '09:50', reason: 'Renouvellement lunettes', avatar: 'https://randomuser.me/api/portraits/women/33.jpg' },
-    ],
-  },
-  '6': {
-    name: 'Radiologie', avgWait: '38 min',
-    patients: [
-      { id: 'p1', name: 'François Durand', priority: 'urgent', arrival: '08:50', reason: 'Scanner thoracique urgent', avatar: 'https://randomuser.me/api/portraits/men/60.jpg' },
-      { id: 'p2', name: 'Isabelle Morel', priority: 'regulier', arrival: '09:10', reason: 'Radiographie pulmonaire', avatar: 'https://randomuser.me/api/portraits/women/57.jpg' },
-      { id: 'p3', name: 'René Garnier', priority: 'regulier', arrival: '09:25', reason: 'IRM lombaire', avatar: 'https://randomuser.me/api/portraits/men/76.jpg' },
-      { id: 'p4', name: 'Nadia Hamdi', priority: 'regulier', arrival: '09:40', reason: 'Échographie abdominale', avatar: 'https://randomuser.me/api/portraits/women/19.jpg' },
-      { id: 'p5', name: 'Yves Leroux', priority: 'urgent', arrival: '10:00', reason: 'Fracture suspectée genou', avatar: 'https://randomuser.me/api/portraits/men/83.jpg' },
-    ],
-  },
-}
-
 const navItems = [
   { id: 'dashboard', label: 'Tableau de bord', icon: <IconDashboard /> },
   { id: 'new-requests', label: 'Nouvelles demandes', icon: <IconPlus /> },
@@ -194,18 +118,56 @@ const navItems = [
   { id: 'history', label: 'Historique', icon: <IconHistory /> },
 ]
 
-// ── Composant Principal ───────────────────────────────────────────────────────
 export default function DetailFile() {
   const { serviceId } = useParams<{ serviceId: string }>()
   const navigate = useNavigate()
   
-  // Look up service — fallback to '1' (Cardiologie)
-  const serviceKey = serviceId && serviceDatabase[serviceId] ? serviceId : '1'
-  const service = serviceDatabase[serviceKey]
+  const [patients, setPatients] = useState<any[]>([])
+  const [serviceName, setServiceName] = useState("Chargement...")
+  const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState({ name: "Utilisateur", role: "Réception" })
 
-  const [patients, setPatients] = useState<Patient[]>(service.patients)
+  useEffect(() => {
+    // 1. Charger l'utilisateur depuis le localStorage
+    const savedUser = localStorage.getItem("medilink_user");
+    let userData: any = null;
+    if (savedUser) {
+      userData = JSON.parse(savedUser);
+      setUser(userData);
+    }
 
-  const removePatient = (id: string) => {
+    const fetchData = async () => {
+      if (!serviceId) return;
+      setLoading(true);
+      try {
+        // 2. Charger les infos du service pour avoir le vrai nom
+        const srv = await serviceAPI.getById(Number(serviceId));
+        setServiceName(srv.nom);
+
+        // 3. Charger les rendez-vous de l'hôpital et filtrer par service
+        if (userData && userData.hopitalId) {
+          const allRdv = await rendezVousAPI.parHopital(userData.hopitalId);
+          const today = new Date().toISOString().split('T')[0];
+          // Filtrer les rendez-vous pour ce service uniquement et pour AUJOURD'HUI
+          const filtered = allRdv.filter((r: any) => 
+            r.service?.id === Number(serviceId) && 
+            r.date === today &&
+            (r.status === "ACCEPTE" || r.status === "ARRIVE" || r.status === "EN_ATTENTE" || r.statut === "ACCEPTE" || r.statut === "ARRIVE")
+          );
+          setPatients(filtered);
+        }
+      } catch (err) {
+        console.error("Erreur lors de la récupération des données:", err);
+        setServiceName("Service");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [serviceId]);
+
+  const removePatient = (id: number) => {
     setPatients((prev) => prev.filter((p) => p.id !== id))
   }
 
@@ -219,7 +181,6 @@ export default function DetailFile() {
 
   return (
     <div className="app-shell">
-      {/* ── Barre Latérale ── */}
       <aside className="sidebar">
         <div className="sidebar__brand">
           <div className="brand-logo">
@@ -264,18 +225,13 @@ export default function DetailFile() {
         </div>
       </aside>
 
-      {/* ── Contenu Principal ── */}
       <main className="main-content">
-        {/* Topbar */}
         <header className="topbar">
-          <div className="topbar__date">24 octobre 2023</div>
+          <div className="topbar__date">{new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
 
           <div className="topbar__search">
             <IconSearch />
-            <input
-              type="text"
-              placeholder="Rechercher un patient ou un service..."
-            />
+            <input type="text" placeholder="Rechercher un patient..." />
           </div>
 
           <div className="topbar__actions">
@@ -286,29 +242,26 @@ export default function DetailFile() {
             <div className="topbar__divider" />
             <div className="topbar__user">
               <div className="topbar__user-info">
-                <span className="user-name">Jean Dupont</span>
-                <span className="user-role">Réceptionniste</span>
+                <span className="user-name">{user.name}</span>
+                <span className="user-role">{user.role}</span>
               </div>
-              <div className="user-avatar">JD</div>
+              <div className="user-avatar">{user.name.substring(0, 2).toUpperCase()}</div>
             </div>
           </div>
         </header>
 
-        {/* Corps de la page */}
         <div className="page-body">
-          {/* Breadcrumb */}
           <nav className="breadcrumb">
             <button className="breadcrumb__link" onClick={() => navigate('/reception/waiting-queues')}>
               Files d'attente
             </button>
             <IconChevron />
-            <span className="breadcrumb__current">{service.name}</span>
+            <span className="breadcrumb__current">{serviceName}</span>
           </nav>
 
-          {/* Hero */}
           <div className="df-hero">
             <div className="df-hero__left">
-              <h1 className="df-title">{service.name}<span className="df-title__dot">.</span></h1>
+              <h1 className="df-title">{serviceName}<span className="df-title__dot">.</span></h1>
               <p className="df-subtitle">
                 Gestion en temps réel de la file d'attente du service.<br />
                 Les patients admis en consultation sont retirés automatiquement de la liste.
@@ -334,14 +287,13 @@ export default function DetailFile() {
                   </svg>
                 </div>
                 <div>
-                  <div className="df-stat__value">{service.avgWait}</div>
+                  <div className="df-stat__value">-- min</div>
                   <div className="df-stat__label">TEMPS MOYEN</div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Liste de la file */}
           <div className="queue-section">
             <div className="queue-section__header">
               <div className="queue-title-group">
@@ -354,40 +306,41 @@ export default function DetailFile() {
               </div>
             </div>
 
-            {patients.length === 0 ? (
-              <div className="queue-empty">Aucun patient en attente pour ce service.</div>
+            {loading ? (
+              <div className="queue-empty">Chargement de la file...</div>
+            ) : patients.length === 0 ? (
+              <div className="queue-empty">File vide : aucun patient en attente pour ce service.</div>
             ) : (
               <div className="queue-list">
-                {patients.map((patient, index) => (
-                  <div key={patient.id} className="patient-card">
+                {patients.map((rdv, index) => (
+                  <div key={rdv.id} className="patient-card">
                     <span className="patient-card__num">{String(index + 1).padStart(2, '0')}</span>
                     
                     <div className="patient-card__avatar">
-                      {patient.avatar
-                        ? <img src={patient.avatar} alt={patient.name} />
-                        : <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
-                      }
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
                     </div>
 
                     <div className="patient-card__info-col">
-                      <div className="patient-card__name">{patient.name}</div>
+                      <div className="patient-card__name">
+                        {rdv.patient ? `${rdv.patient.prenom} ${rdv.patient.nom}` : "Patient"}
+                      </div>
                       <div className="patient-card__meta">
-                        <span className={`priority-badge priority-badge--${patient.priority}`}>
-                          {patient.priority === 'urgent' ? 'URGENT' : 'RÉGULIER'}
+                        <span className={`priority-badge priority-badge--${rdv.priorite?.toLowerCase() === 'haute' ? 'urgent' : 'regulier'}`}>
+                          {rdv.priorite === 'HAUTE' ? 'URGENT' : 'RÉGULIER'}
                         </span>
-                        <span className="patient-card__arrival">Arrivée à {patient.arrival}</span>
+                        <span className="patient-card__arrival">RDV à {rdv.heure}</span>
                       </div>
                     </div>
 
                     <div className="patient-card__reason-col">
                       <span className="reason-label">MOTIF</span>
-                      <span className="reason-text">{patient.reason}</span>
+                      <span className="reason-text">{rdv.motif || "Consultation"}</span>
                     </div>
 
                     <button
                       className="btn-remove-icon"
                       aria-label="Retirer de la file"
-                      onClick={() => removePatient(patient.id)}
+                      onClick={() => removePatient(rdv.id)}
                     >
                       <IconRemoveUser />
                     </button>
@@ -396,14 +349,12 @@ export default function DetailFile() {
               </div>
             )}
 
-            {/* Information mise à jour */}
             <div className="queue-notice">
               <IconInfo />
               <span>Mise à jour automatique : les patients en consultation disparaissent de cette liste.</span>
             </div>
           </div>
 
-          {/* Cartes d'action */}
           <div className="action-cards">
             <div className="action-card">
               <div className="action-card__icon"><IconCheckTask /></div>
@@ -426,7 +377,6 @@ export default function DetailFile() {
           </div>
         </div>
 
-        {/* FAB */}
         <button className="fab" aria-label="Ajouter un patient">
           <IconAddUser />
         </button>
@@ -434,4 +384,3 @@ export default function DetailFile() {
     </div>
   )
 }
-

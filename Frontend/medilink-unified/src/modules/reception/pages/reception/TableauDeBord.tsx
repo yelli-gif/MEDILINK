@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './TableauDeBord.css'
-import { accueilAPI, rendezVousAPI } from '../../../../services/api'
+import { rendezVousAPI } from '../../../../services/api'
 
-// ── Icônes (inline SVG helpers) ────────────────────────────────────────────────
+// ── Icônes ───────────────────────────────────────────────────────────────────
 
 const IconDashboard = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -56,11 +56,6 @@ const IconSearch = () => (
     <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
   </svg>
 )
-const IconFilter = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-  </svg>
-)
 const IconRefresh = () => (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="23 4 23 10 17 10" /><polyline points="1 20 1 14 7 14" />
@@ -68,53 +63,35 @@ const IconRefresh = () => (
   </svg>
 )
 
-// ── Types de données ──────────────────────────────────────────────────────────
+// ── Types ────────────────────────────────────────────────────────────────────
 
-type NavItem = { id: string; label: string; icon: React.ReactNode }
 type Patient = {
   id: string
-  initials: string
   name: string
   patientId: string
   time: string
   doctor: string
   service: string
   status: 'confirmed' | 'in-progress' | 'completed'
-  avatar?: string
 }
 
-// ── Données statiques ─────────────────────────────────────────────────────────
-
-const navItems: NavItem[] = [
+const navItems = [
   { id: 'dashboard', label: 'Tableau de bord', icon: <IconDashboard /> },
   { id: 'new-requests', label: 'Nouvelles demandes', icon: <IconPlus /> },
-  { id: 'waiting-queues', label: 'Files d\'attente', icon: <IconClock /> },
+  { id: 'waiting-queues', label: "Files d'attente", icon: <IconClock /> },
   { id: 'ticket-verification', label: 'Vérif. tickets', icon: <IconTicket /> },
   { id: 'history', label: 'Historique', icon: <IconHistory /> },
 ]
 
-const patients: Patient[] = []
+// ── Composants internes ──────────────────────────────────────────────────────
 
-const statusLabel: Record<Patient['status'], string> = {
-  confirmed: 'Confirmé',
-  'in-progress': 'En cours',
-  completed: 'Terminé',
-}
-
-// ── Sous-composants ───────────────────────────────────────────────────────────
-
-function StatCard({
-  icon, iconBg, value, label, badge,
-}: {
-  icon: React.ReactNode; iconBg: string; value: string | number; label: string; badge?: string
-}) {
+function StatCard({ icon, iconBg, value, label }: { icon: React.ReactNode; iconBg: string; value: string | number; label: string }) {
   return (
     <div className="stat-card">
       <div className="stat-card__top">
         <div className="stat-card__icon" style={{ background: iconBg }}>
           {icon}
         </div>
-        {badge && <span className="stat-card__badge">{badge}</span>}
       </div>
       <div className="stat-card__value">{value}</div>
       <div className="stat-card__label">{label}</div>
@@ -123,13 +100,16 @@ function StatCard({
 }
 
 function PatientRow({ patient }: { patient: Patient }) {
+  const statusLabel = {
+    confirmed: 'En attente',
+    'in-progress': 'Sur place',
+    completed: 'Terminé',
+  }
   return (
     <tr className="patient-row">
       <td className="patient-row__info">
         <div className="patient-avatar">
-          {patient.avatar
-            ? <img src={patient.avatar} alt={patient.name} />
-            : <span>{patient.initials}</span>}
+          {patient.name.substring(0, 2).toUpperCase()}
         </div>
         <div>
           <div className="patient-name">{patient.name}</div>
@@ -153,49 +133,63 @@ function PatientRow({ patient }: { patient: Patient }) {
 // ── Composant Principal ───────────────────────────────────────────────────────
 
 export default function Dashboard() {
-  const [activeNav, setActiveNav] = useState('dashboard')
+  const [activeNav] = useState('dashboard')
   const [search, setSearch] = useState('')
-  const [isRefreshing, setIsRefreshing] = useState(false)
-  const [lastUpdated, setLastUpdated] = useState('il y a 2 min')
+  const [loading, setLoading] = useState(true)
+  const [patientsList, setPatientsList] = useState<Patient[]>([])
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
-  const [filterStatus, setFilterStatus] = useState<'all' | 'on-site'>('all')
-  const [patientsList, setPatientsList] = useState<Patient[]>(patients)
+  const [userProfile, setUserProfile] = useState<any>(null)
+  
   const navigate = useNavigate()
 
-  const [userProfile, setUserProfile] = useState({
-    name: 'Jean Dupont',
-    role: 'Réceptionniste'
-  });
+  useEffect(() => {
+    const storedUser = localStorage.getItem('medilink_user')
+    if (storedUser) {
+      setUserProfile(JSON.parse(storedUser))
+    }
+  }, [])
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('medilink_user');
-    if (storedUser) {
-      try {
-        const parsed = JSON.parse(storedUser);
-        setUserProfile({
-          name: parsed.name || 'Jean Dupont',
-          role: parsed.role || 'Réceptionniste'
-        });
-      } catch (err) {}
+    if (userProfile) {
+      const hId = userProfile.hopitalId || userProfile.personnelId || userProfile.id;
+      if (hId) {
+        fetchTodayData(parseInt(hId.toString()))
+      }
     }
-  }, []);
+  }, [userProfile, selectedDate])
 
-  const formatDate = (dateStr: string) => {
-    const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long', year: 'numeric' }
+  const fetchTodayData = async (hopitalId: number) => {
+    try {
+      setLoading(true)
+      const data = await rendezVousAPI.parHopital(hopitalId)
+      
+      const mapped: Patient[] = data
+        .filter((rdv: any) => rdv.date === selectedDate)
+        .map((rdv: any) => ({
+          id: rdv.id.toString(),
+          name: rdv.patient ? `${rdv.patient.prenom} ${rdv.patient.nom}` : 'Patient Inconnu',
+          patientId: rdv.patient?.id?.toString() || '---',
+          time: rdv.heure ? rdv.heure.substring(0, 5) : '--:--',
+          doctor: rdv.medecinName || 'Station 4',
+          service: rdv.service?.nom || 'Service Inconnu',
+          status: rdv.statut === 'ARRIVE' ? 'confirmed' : 
+                  rdv.statut === 'EN_ATTENTE' ? 'in-progress' : 
+                  rdv.statut === 'TERMINE' || rdv.statut === 'TRAITE' ? 'completed' : 'confirmed'
+        }))
+      setPatientsList(mapped)
+    } catch (err) {
+      console.error('Erreur fetch dashboard:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const formatDateLong = (dateStr: string) => {
+    const options: Intl.DateTimeFormatOptions = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }
     return new Date(dateStr).toLocaleDateString('fr-FR', options)
   }
 
-  const handleRefresh = () => {
-    setIsRefreshing(true)
-    // Simulation d'un délai réseau
-    setTimeout(() => {
-      setIsRefreshing(false)
-      setLastUpdated('À l\'instant')
-    }, 1200)
-  }
-
   const handleNav = (id: string) => {
-    setActiveNav(id)
     if (id === 'dashboard') navigate('/reception/dashboard')
     if (id === 'new-requests') navigate('/reception/requests')
     if (id === 'waiting-queues') navigate('/reception/waiting-queues')
@@ -203,19 +197,13 @@ export default function Dashboard() {
     if (id === 'history') navigate('/reception/history')
   }
 
-  const filtered = patientsList.filter(
-    (p) => {
-      const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) ||
-        p.doctor.toLowerCase().includes(search.toLowerCase()) ||
-        p.service.toLowerCase().includes(search.toLowerCase());
-      const matchesFilter = filterStatus === 'all' || p.status === 'confirmed' || p.status === 'in-progress';
-      return matchesSearch && matchesFilter;
-    }
+  const filtered = patientsList.filter(p => 
+    p.name.toLowerCase().includes(search.toLowerCase()) ||
+    p.service.toLowerCase().includes(search.toLowerCase())
   )
 
   return (
     <div className="app-shell">
-      {/* ── Barre Latérale ── */}
       <aside className="sidebar">
         <div className="sidebar__brand">
           <div className="brand-logo">
@@ -243,7 +231,7 @@ export default function Dashboard() {
         </nav>
 
         <div className="sidebar__emergency">
-          <button className="btn-emergency" onClick={() => navigate('/reception/emergency-intake')}>
+          <button className="btn-emergency" onClick={() => navigate('/reception/requests')}>
             Ajouter sur place
           </button>
         </div>
@@ -260,27 +248,11 @@ export default function Dashboard() {
         </div>
       </aside>
 
-      {/* ── Contenu Principal ── */}
       <main className="main-content">
-        {/* Topbar */}
         <header className="topbar">
-          <div className="topbar__date" style={{ position: 'relative', cursor: 'pointer' }}>
-            <span onClick={() => (document.getElementById('dashboard-date-picker') as HTMLInputElement)?.showPicker()}>
-              {formatDate(selectedDate)}
-            </span>
-            <input
-              id="dashboard-date-picker"
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              style={{
-                position: 'absolute',
-                opacity: 0,
-                pointerEvents: 'none',
-                width: 0,
-                height: 0
-              }}
-            />
+          <div className="topbar__date" onClick={() => (document.getElementById('dash-date-picker') as HTMLInputElement)?.showPicker()} style={{ cursor: 'pointer' }}>
+             {new Date(selectedDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+             <input id="dash-date-picker" type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }} />
           </div>
 
           <div className="topbar__search">
@@ -294,90 +266,63 @@ export default function Dashboard() {
           </div>
 
           <div className="topbar__actions">
-            <button className="icon-btn" aria-label="Notifications" onClick={() => navigate('/reception/notifications')}><IconBell /></button>
-            <button className="icon-btn" aria-label="Aide" onClick={() => navigate('/reception/help')}><IconHelp /></button>
+            <button className="icon-btn"><IconBell /></button>
+            <button className="icon-btn"><IconHelp /></button>
             <div className="topbar__divider" />
-            <div className="topbar__user" onClick={() => navigate('/connexion')} style={{ cursor: 'pointer' }}>
+            <div className="topbar__user">
               <div className="topbar__user-info">
-                <span className="user-name">{userProfile.name}</span>
-                <span className="user-role">{userProfile.role}</span>
+                <span className="user-name">{userProfile?.name || 'Chargement...'}</span>
+                <span className="user-role">Réceptionniste</span>
               </div>
-              <div className="user-avatar">{userProfile.name.substring(0, 2).toUpperCase()}</div>
+              <div className="user-avatar">{userProfile?.name?.substring(0,2).toUpperCase() || 'JD'}</div>
             </div>
           </div>
         </header>
 
-        {/* Corps de la page */}
         <div className="page-body">
-          {/* Titre de la page */}
           <div className="page-title-block">
-            <h1 className="page-title">Bonjour {userProfile.name}</h1>
+            <h1 className="page-title">Bonjour {userProfile?.name?.split(' ')[0] || 'Utilisateur'}</h1>
             <p className="page-subtitle">
-              Bienvenue sur votre station d'accueil. Nous sommes le {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}.
+              Bienvenue sur votre station d'accueil. Nous sommes le {formatDateLong(selectedDate)}.
             </p>
           </div>
 
-          {/* Cartes Stats */}
           <div className="stats-grid">
             <StatCard
-              icon={
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
-                </svg>
-              }
+              icon={<IconDashboard />}
               iconBg="#eff6ff"
               value={patientsList.length}
               label="TOTAL DEMANDES"
             />
             <StatCard
-              icon={
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
-                </svg>
-              }
-              iconBg="#f0f9ff"
+              icon={<IconClock />}
+              iconBg="#fef3c7"
               value={patientsList.filter(p => p.status === 'confirmed').length}
               label="EN ATTENTE"
             />
             <StatCard
-              icon={
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                </svg>
-              }
-              iconBg="#f0fdf4"
+              icon={<IconPlus />}
+              iconBg="#dcfce7"
               value={patientsList.filter(p => p.status === 'in-progress').length}
               label="SUR PLACE"
             />
             <StatCard
-              icon={
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.27h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8a16 16 0 0 0 6 6l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.73 15z" />
-                </svg>
-              }
-              iconBg="#faf5ff"
+              icon={<IconHistory />}
+              iconBg="#f3e8ff"
               value={patientsList.filter(p => p.status === 'completed').length}
               label="TERMINÉS"
             />
           </div>
 
-          {/* Tableau des rendez-vous */}
           <section className="appointments-section">
             <div className="appointments-header">
               <div>
-                <h2 className="appointments-title">Rendez-vous validés</h2>
-                <p className="appointments-subtitle">Flux de patients pour la journée du {new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}</p>
+                <h2 className="appointments-title">Rendez-vous de la journée</h2>
+                <p className="appointments-subtitle">Flux de patients pour le {new Date(selectedDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}</p>
               </div>
-              <div className="appointments-controls">
-                <button
-                  className={`icon-btn icon-btn--border ${filterStatus === 'on-site' ? 'icon-btn--active' : ''}`}
-                  aria-label="Filtrer"
-                  onClick={() => setFilterStatus(prev => prev === 'all' ? 'on-site' : 'all')}
-                  title={filterStatus === 'all' ? "Filtrer: Tous" : "Filtrer: Sur place"}
-                >
-                  <IconFilter />
-                </button>
-              </div>
+              <button className="btn-refresh" onClick={() => fetchTodayData(parseInt(userProfile.hopitalId))}>
+                <IconRefresh /> Actualiser
+              </button>
             </div>
 
             <div className="table-wrapper">
@@ -391,30 +336,17 @@ export default function Dashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((p) => (
-                    <PatientRow key={p.id} patient={p} />
-                  ))}
+                  {loading ? (
+                    <tr><td colSpan={4} style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>Chargement...</td></tr>
+                  ) : filtered.length === 0 ? (
+                    <tr><td colSpan={4} style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>Aucun rendez-vous pour cette date.</td></tr>
+                  ) : (
+                    filtered.map((p) => (
+                      <PatientRow key={p.id} patient={p} />
+                    ))
+                  )}
                 </tbody>
               </table>
-            </div>
-
-            {/* Barre de footer */}
-            <div className="table-footer">
-              <div className="table-footer__stats">
-                <div className="stat-item"><span className="dot dot--blue" /> EN ROUTE : <strong>18</strong></div>
-                <div className="stat-item"><span className="dot dot--green" /> SUR PLACE : <strong>32</strong></div>
-                <div className="stat-item"><span className="dot dot--purple" /> EN CONSULTATION : <strong>09</strong></div>
-              </div>
-              <div className="table-footer__update">
-                <span className="update-time">Dernière mise à jour : {lastUpdated}</span>
-                <button
-                  className={`btn-refresh ${isRefreshing ? 'btn-refresh--loading' : ''}`}
-                  onClick={handleRefresh}
-                  disabled={isRefreshing}
-                >
-                  <IconRefresh /> {isRefreshing ? 'Mise à jour...' : 'Actualiser'}
-                </button>
-              </div>
             </div>
           </section>
         </div>
@@ -422,4 +354,3 @@ export default function Dashboard() {
     </div>
   )
 }
-

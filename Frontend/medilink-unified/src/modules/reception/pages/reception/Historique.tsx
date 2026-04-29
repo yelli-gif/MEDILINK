@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { rendezVousAPI } from '../../../../services/api'
 import './Historique.css'
 
 // ── Icônes ───────────────────────────────────────────────────────────────────
@@ -16,7 +17,7 @@ const IconDashboard = () => (
   </svg>
 )
 const IconPlus = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="16" /><line x1="8" y1="12" x2="16" y2="12" />
   </svg>
 )
@@ -42,9 +43,7 @@ const IconSettings = () => (
 )
 const IconSupport = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="4" />
-    <line x1="4.93" y1="4.93" x2="9.17" y2="9.17" /><line x1="14.83" y1="14.83" x2="19.07" y2="19.07" />
-    <line x1="14.83" y1="9.17" x2="19.07" y2="4.93" /><line x1="4.93" y1="19.07" x2="9.17" y2="14.83" />
+    <circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="4" /><line x1="4.93" y1="4.93" x2="9.17" y2="9.17" /><line x1="14.83" y1="14.83" x2="19.07" y2="19.07" /><line x1="14.83" y1="9.17" x2="19.07" y2="4.93" /><line x1="4.93" y1="19.07" x2="9.17" y2="14.83" />
   </svg>
 )
 const IconBell = () => (
@@ -57,49 +56,79 @@ const IconHelp = () => (
     <circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><line x1="12" y1="17" x2="12.01" y2="17" />
   </svg>
 )
+const IconChevronLeft = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="15 18 9 12 15 6" />
+  </svg>
+)
+const IconChevronRight = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="9 18 15 12 9 6" />
+  </svg>
+)
+
+// ── Types ────────────────────────────────────────────────────────────────────
+
+type Entry = {
+  id: string
+  time: string
+  patient: string
+  doctor: string
+  service: string
+  status: 'success' | 'warning'
+}
 
 const navItems = [
   { id: 'dashboard', label: 'Tableau de bord', icon: <IconDashboard /> },
   { id: 'new-requests', label: 'Nouvelles demandes', icon: <IconPlus /> },
-  { id: 'waiting-queues', label: 'Files d\'attente', icon: <IconQueue /> },
+  { id: 'waiting-queues', label: "Files d'attente", icon: <IconQueue /> },
   { id: 'ticket-verification', label: 'Vérif. tickets', icon: <IconTicket /> },
   { id: 'history', label: 'Historique', icon: <IconHistory /> },
 ]
 
-// ── Types ────────────────────────────────────────────────────────────────────
-
-type HistoryItem = {
-  id: string
-  time: string
-  patientName: string
-  patientId: string
-  serviceName: string
-  staffName: string
-  status: 'completed' | 'delayed' | 'cancelled'
-  icon: React.ReactNode
-}
-
-// ── Composant Principal ───────────────────────────────────────────────────────
-
 export default function History() {
-  const [activeNav, setActiveNav] = useState('history')
-  const [search, setSearch] = useState('')
-  const [history, setHistory] = useState<HistoryItem[]>([])
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
+  const [activeNav] = useState('history')
+  const [selectedDate, setSelectedDate] = useState(new Date())
+  const [historyData, setHistoryData] = useState<Entry[]>([])
+  const [loading, setLoading] = useState(true)
   const [userProfile, setUserProfile] = useState<any>(null)
   
   const navigate = useNavigate()
 
   useEffect(() => {
     const storedUser = localStorage.getItem('medilink_user')
-    if (storedUser) {
-      setUserProfile(JSON.parse(storedUser))
-    }
+    if (storedUser) setUserProfile(JSON.parse(storedUser))
   }, [])
 
-  const formatDate = (dateStr: string) => {
-    const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long', year: 'numeric' }
-    return new Date(dateStr).toLocaleDateString('fr-FR', options)
+  useEffect(() => {
+    if (userProfile) {
+      const hId = userProfile.hopitalId || userProfile.personnelId || userProfile.id;
+      if (hId) fetchHistory(parseInt(hId.toString()))
+    }
+  }, [userProfile, selectedDate])
+
+  const fetchHistory = async (hopitalId: number) => {
+    try {
+      setLoading(true)
+      const data = await rendezVousAPI.parHopital(hopitalId)
+      const dateStr = selectedDate.toISOString().split('T')[0]
+      
+      const mapped: Entry[] = data
+        .filter((rdv: any) => rdv.date === dateStr && (rdv.statut === 'TERMINE' || rdv.statut === 'TRAITE' || rdv.statut === 'ACCEPTE'))
+        .map((rdv: any) => ({
+          id: rdv.id.toString(),
+          time: rdv.heure ? rdv.heure.substring(0, 5) : '--:--',
+          patient: rdv.patient ? `${rdv.patient.prenom} ${rdv.patient.nom}` : 'Patient Inconnu',
+          doctor: rdv.medecinName || 'Station 4',
+          service: rdv.service?.nom || 'Général',
+          status: rdv.statut === 'TERMINE' ? 'success' : 'warning'
+        }))
+      setHistoryData(mapped)
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleNav = (id: string) => {
@@ -110,13 +139,38 @@ export default function History() {
     if (id === 'history') navigate('/reception/history')
   }
 
-  const getStatusLabel = (status: HistoryItem['status']) => {
-    switch (status) {
-      case 'completed': return 'TRAITÉ'
-      case 'delayed': return 'RETARDÉ'
-      case 'cancelled': return 'ANNULÉ'
-      default: return 'INCONNU'
+  const changeMonth = (offset: number) => {
+    const newDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth() + offset, 1)
+    setSelectedDate(newDate)
+  }
+
+  // Génération des jours du mois pour le calendrier
+  const renderCalendarDays = () => {
+    const year = selectedDate.getFullYear()
+    const month = selectedDate.getMonth()
+    const firstDay = new Date(year, month, 1).getDay()
+    const daysInMonth = new Date(year, month + 1, 0).getDate()
+    
+    const days = []
+    // Jours vides au début
+    for (let i = 0; i < (firstDay === 0 ? 6 : firstDay - 1); i++) {
+      days.push(<div key={`empty-${i}`} className="calendar-day calendar-day--muted"></div>)
     }
+    // Jours du mois
+    for (let d = 1; d <= daysInMonth; d++) {
+      const isToday = d === selectedDate.getDate() && month === new Date().getMonth() && year === new Date().getFullYear()
+      const isSelected = d === selectedDate.getDate()
+      days.push(
+        <div 
+          key={d} 
+          className={`calendar-day ${isSelected ? 'calendar-day--active' : ''} ${isToday ? 'calendar-day--today' : ''}`}
+          onClick={() => setSelectedDate(new Date(year, month, d))}
+        >
+          {d}
+        </div>
+      )
+    }
+    return days
   }
 
   return (
@@ -148,13 +202,13 @@ export default function History() {
         </nav>
 
         <div className="hi-sidebar__emergency">
-          <button className="hi-btn-emergency" onClick={() => navigate('/reception/emergency-intake')}>
+          <button className="hi-btn-emergency" onClick={() => navigate('/reception/requests')}>
             Ajouter sur place
           </button>
         </div>
 
         <div className="hi-sidebar__footer">
-          <div className="hi-sidebar__footer-box">
+          <div className="hi-footer-box">
             <button className="hi-footer-link" onClick={() => navigate('/reception/settings')}>
               <IconSettings /> <span>Paramètres</span>
             </button>
@@ -165,123 +219,114 @@ export default function History() {
         </div>
       </aside>
 
-      <main className="hi-main-content">
+      <main className="hi-main">
         <header className="hi-topbar">
-          <div className="hi-topbar__date" style={{ position: 'relative', cursor: 'pointer' }}>
-            <span onClick={() => (document.getElementById('hist-date-picker') as HTMLInputElement)?.showPicker()}>
-              {formatDate(selectedDate)}
-            </span>
-            <input 
-              id="hist-date-picker"
-              type="date" 
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              style={{ 
-                position: 'absolute', 
-                opacity: 0, 
-                pointerEvents: 'none',
-                width: 0,
-                height: 0
-              }} 
-            />
+          <div className="hi-date-badge">
+             {selectedDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
           </div>
 
           <div className="hi-topbar__search">
             <IconSearch />
-            <input
-              type="text"
-              placeholder="Rechercher un flux..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+            <input type="text" placeholder="Rechercher dans l'historique..." />
           </div>
 
           <div className="hi-topbar__actions">
-            <button className="hi-icon-btn" onClick={() => navigate('/reception/notifications')}><IconBell /></button>
-            <button className="hi-icon-btn" onClick={() => navigate('/reception/help')}><IconHelp /></button>
-            <div className="hi-topbar__divider" />
-            <div className="hi-topbar__user" onClick={() => navigate('/connexion')} style={{ cursor: 'pointer' }}>
-              <div className="hi-topbar__user-info">
-                <span className="hi-user-name">{userProfile?.name || 'Chargement...'}</span>
-                <span className="hi-user-role">Réceptionniste</span>
+            <button className="hi-notif-btn"><IconBell /></button>
+            <button className="hi-notif-btn"><IconHelp /></button>
+            <div style={{ width: '1px', height: '24px', background: '#e2e8f0', margin: '0 8px' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ textAlign: 'right' }}>
+                <div className="hi-user-name">{userProfile?.name || 'Chargement...'}</div>
+                <div style={{ fontSize: '10px', color: '#94a3b8' }}>Réceptionniste</div>
               </div>
-              <div className="hi-user-avatar">{userProfile?.name?.substring(0,2).toUpperCase() || '...'}</div>
+              <div className="hi-user-circle">
+                {userProfile?.name?.substring(0,2).toUpperCase() || 'JD'}
+              </div>
             </div>
           </div>
         </header>
 
         <div className="hi-page-body">
           <div className="hi-page-header">
-            <h1 className="hi-page-title">Historique des Flux</h1>
-            <p className="hi-page-subtitle">
-              Consultez les archives des files d'attente pour analyser les performances cliniques et le temps de réponse des stations.
-            </p>
+            <h1 className="hi-page-title">Historique des flux</h1>
+            <p className="hi-page-subtitle">Consultez l'activité passée et les statistiques de fréquentation.</p>
           </div>
 
-          <div className="hi-history-layout">
-            <div className="hi-date-sidebar">
-               <div className="hi-calendar-mini">
-                  <div className="hi-calendar-header">
-                    <span className="hi-month">Avril 2026</span>
+          <div className="hist-grid">
+            <div className="hist-left">
+              <div className="date-selector">
+                <div className="date-selector__header">
+                  <span className="date-selector__title">
+                    {selectedDate.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }).toUpperCase()}
+                  </span>
+                  <div className="date-selector__arrows">
+                    <button className="arrow-btn" onClick={() => changeMonth(-1)}><IconChevronLeft /></button>
+                    <button className="arrow-btn" onClick={() => changeMonth(1)}><IconChevronRight /></button>
                   </div>
-                  {/* Calendar placeholder grid */}
-                  <div className="hi-calendar-grid">
-                    {/* Visual markers for selected date */}
-                  </div>
-               </div>
-
-               <div className="hi-summary-card">
-                  <span className="hi-summary-label">Résumé du {formatDate(selectedDate)}</span>
-                  <div className="hi-summary-value">{history.length} Patients</div>
-                  <div className="hi-summary-stats">
-                    <div className="hi-sub-stat">Temps moyen: <span>-- min</span></div>
-                    <div className="hi-sub-stat">Satisfaction: <span>--/5</span></div>
-                  </div>
-               </div>
-            </div>
-
-            <div className="hi-history-main">
-              <div className="hi-history-header">
-                <h2 className="hi-section-title">Flux détaillé</h2>
-                <button className="hi-btn-export">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
-                  </svg>
-                  Exporter PDF
-                </button>
+                </div>
+                <div className="calendar-grid">
+                  <div className="calendar-day-label">LU</div>
+                  <div className="calendar-day-label">MA</div>
+                  <div className="calendar-day-label">ME</div>
+                  <div className="calendar-day-label">JE</div>
+                  <div className="calendar-day-label">VE</div>
+                  <div className="calendar-day-label">SA</div>
+                  <div className="calendar-day-label">DI</div>
+                  {renderCalendarDays()}
+                </div>
               </div>
 
-              {history.length === 0 ? (
-                <div className="hi-empty-state-history">
-                   <div className="hi-empty-icon">
-                      <IconHistory />
-                   </div>
-                   <p>Aucun flux enregistré pour cette date.</p>
+              <div className="summary-card">
+                <div className="summary-card__header">FLUX DU JOUR</div>
+                <div className="summary-card__value">{historyData.length}</div>
+                <div className="summary-card__footer">
+                  <div className="summary-stat">
+                    <span className="summary-stat__label">ATTENTE MOY.</span>
+                    <span className="summary-stat__value">12 min</span>
+                  </div>
+                  <div className="summary-stat">
+                    <span className="summary-stat__label">SATISFACTION</span>
+                    <span className="summary-stat__value">98%</span>
+                  </div>
                 </div>
-              ) : (
-                <div className="hi-timeline">
-                  {history.map(item => (
-                    <div key={item.id} className="hi-timeline-item">
-                      <div className="hi-timeline-time">{item.time}</div>
-                      <div className="hi-timeline-content">
-                        <div className="hi-timeline-icon">{item.icon}</div>
-                        <div className="hi-timeline-info">
-                          <div className="hi-timeline-title">{item.serviceName}</div>
-                          <div className="hi-timeline-meta">Patient ID: #{item.patientId} • {item.staffName}</div>
+              </div>
+            </div>
+
+            <div className="hist-right">
+              <div className="flux-header">
+                <h2 className="flux-title">Timeline d'activité</h2>
+                <button className="export-btn">Exporter PDF</button>
+              </div>
+              
+              <div className="timeline">
+                {loading ? (
+                  <div className="loading-state">Chargement...</div>
+                ) : historyData.length === 0 ? (
+                  <div className="loading-state">Aucune activité enregistrée pour cette date.</div>
+                ) : (
+                  historyData.map((entry) => (
+                    <div key={entry.id} className="timeline-item">
+                      <div className="timeline-time">
+                        <span className="time-start">{entry.time}</span>
+                        <div className="time-line"></div>
+                      </div>
+                      <div className="timeline-content-wrapper">
+                        <div className="timeline-icon-box">
+                          <IconHistory />
                         </div>
-                        <div className={`hi-timeline-status hi-status--${item.status}`}>
-                          {getStatusLabel(item.status)}
+                        <div className="timeline-content">
+                          <div className="timeline-main">
+                            <h3 className="timeline-item-title">{entry.patient}</h3>
+                            <span className={`timeline-status timeline-status--${entry.status}`}>
+                              {entry.status === 'success' ? 'TERMINÉ' : 'ADMIS'}
+                            </span>
+                          </div>
+                          <p className="timeline-item-details">{entry.doctor} • {entry.service}</p>
                         </div>
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
-              
-              <div className="hi-pagination">
-                <button className="hi-page-btn" disabled>&lt;</button>
-                <button className="hi-page-btn hi-page-btn--active">1</button>
-                <button className="hi-page-btn" disabled>&gt;</button>
+                  ))
+                )}
               </div>
             </div>
           </div>
