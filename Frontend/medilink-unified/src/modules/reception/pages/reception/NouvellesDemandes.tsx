@@ -168,11 +168,11 @@ export default function NewRequests() {
   }
 
   const handleNav = (id: string) => {
-    if (id === 'dashboard') navigate('/dashboard')
-    if (id === 'new-requests') navigate('/requests')
-    if (id === 'waiting-queues') navigate('/waiting-queues')
-    if (id === 'ticket-verification') navigate('/ticket-verification')
-    if (id === 'history') navigate('/history')
+    if (id === 'dashboard') navigate('/reception/dashboard')
+    if (id === 'new-requests') navigate('/reception/requests')
+    if (id === 'waiting-queues') navigate('/reception/waiting-queues')
+    if (id === 'ticket-verification') navigate('/reception/ticket-verification')
+    if (id === 'history') navigate('/reception/history')
   }
 
   const handleValidate = (req: Request) => {
@@ -221,17 +221,17 @@ export default function NewRequests() {
         </nav>
 
         <div className="hi-sidebar__emergency">
-          <button className="hi-btn-emergency" onClick={() => navigate('/emergency-intake')}>
+          <button className="hi-btn-emergency" onClick={() => navigate('/reception/emergency-intake')}>
             Ajouter sur place
           </button>
         </div>
 
         <div className="hi-sidebar__footer">
           <div className="hi-footer-box">
-            <button className="hi-footer-link" onClick={() => navigate('/settings')}>
+            <button className="hi-footer-link" onClick={() => navigate('/reception/settings')}>
               <IconSettings /> <span>Paramètres</span>
             </button>
-            <button className="hi-footer-link" onClick={() => navigate('/support')}>
+            <button className="hi-footer-link" onClick={() => navigate('/reception/support')}>
               <IconSupport /> <span>Assistance</span>
             </button>
           </div>
@@ -272,8 +272,8 @@ export default function NewRequests() {
           </div>
 
           <div className="hi-topbar__actions">
-            <button className="hi-icon-btn" onClick={() => navigate('/notifications')}><IconBell /></button>
-            <button className="hi-icon-btn" onClick={() => navigate('/help')}><IconHelp /></button>
+            <button className="hi-icon-btn" onClick={() => navigate('/reception/notifications')}><IconBell /></button>
+            <button className="hi-icon-btn" onClick={() => navigate('/reception/help')}><IconHelp /></button>
             <div className="hi-topbar__divider" />
             <div className="hi-user-info">
               <span className="hi-user-name">Jean Dupont</span>
@@ -494,3 +494,4 @@ export default function NewRequests() {
     </div>
   )
 }
+

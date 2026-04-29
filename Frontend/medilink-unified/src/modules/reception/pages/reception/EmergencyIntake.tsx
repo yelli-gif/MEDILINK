@@ -124,11 +124,11 @@ export default function EmergencyIntake() {
 
   const handleNav = (id: string) => {
     setActiveNav(id)
-    if (id === 'dashboard') navigate('/dashboard')
-    if (id === 'new-requests') navigate('/requests')
-    if (id === 'waiting-queues') navigate('/waiting-queues')
-    if (id === 'ticket-verification') navigate('/ticket-verification')
-    if (id === 'history') navigate('/history')
+    if (id === 'dashboard') navigate('/reception/dashboard')
+    if (id === 'new-requests') navigate('/reception/requests')
+    if (id === 'waiting-queues') navigate('/reception/waiting-queues')
+    if (id === 'ticket-verification') navigate('/reception/ticket-verification')
+    if (id === 'history') navigate('/reception/history')
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -183,10 +183,10 @@ export default function EmergencyIntake() {
 
         <div className="sidebar__footer">
           <div className="sidebar__footer-box">
-            <button className="footer-link" onClick={() => navigate('/settings')}>
+            <button className="footer-link" onClick={() => navigate('/reception/settings')}>
               <IconSettings /> <span>Paramètres</span>
             </button>
-            <button className="footer-link" onClick={() => navigate('/support')}>
+            <button className="footer-link" onClick={() => navigate('/reception/support')}>
               <IconSupport /> <span>Assistance</span>
             </button>
           </div>
@@ -208,8 +208,8 @@ export default function EmergencyIntake() {
           </div>
 
           <div className="hi-topbar__actions">
-            <button className="vt-icon-btn" onClick={() => navigate('/notifications')}><IconBell /></button>
-            <button className="vt-icon-btn" onClick={() => navigate('/help')}><IconHelp /></button>
+            <button className="vt-icon-btn" onClick={() => navigate('/reception/notifications')}><IconBell /></button>
+            <button className="vt-icon-btn" onClick={() => navigate('/reception/help')}><IconHelp /></button>
             <div className="topbar__divider" />
             <div className="hi-user-info">
               <span className="user-name">Jean Dupont</span>
@@ -333,7 +333,7 @@ export default function EmergencyIntake() {
               <div className="hi-history">
                 <div className="hi-history-header">
                   <h3 className="hi-history-title">Récemment enregistrés</h3>
-                  <button className="hi-history-link" onClick={() => navigate('/history')}>Voir tout l'historique</button>
+                  <button className="hi-history-link" onClick={() => navigate('/reception/history')}>Voir tout l'historique</button>
                 </div>
                 
                 <div className="hi-table-container">
@@ -370,3 +370,4 @@ export default function EmergencyIntake() {
     </div>
   )
 }
+

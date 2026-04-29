@@ -19,7 +19,7 @@ const AllocationSuggestions = () => {
           </div>
         </div>
         <nav className="hi-sidebar__nav">
-          <button className="hi-nav-item" onClick={() => navigate('/waiting-queues')}>Retour aux Files</button>
+          <button className="hi-nav-item" onClick={() => navigate('/reception/waiting-queues')}>Retour aux Files</button>
         </nav>
       </aside>
 
@@ -68,3 +68,4 @@ const AllocationSuggestions = () => {
 };
 
 export default AllocationSuggestions;
+

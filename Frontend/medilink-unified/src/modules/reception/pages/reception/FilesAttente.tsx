@@ -1,7 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import './FilesAttente.css'
-
+import { serviceAPI } from '../../../services/api'
 import './FilesAttente.css'
 
 const IconSearch = () => (
@@ -102,65 +101,6 @@ const statusLabel: Record<Status, string> = {
   'high-load': 'SURCHARGÉ',
 }
 
-const departments: Department[] = [
-  {
-    id: '1', name: 'Cardiologie', location: 'Étage 2, Aile Nord',
-    count: 24, status: 'normal', iconBg: '#eff6ff', iconColor: '#2563eb',
-    icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-      </svg>
-    ),
-  },
-  {
-    id: '2', name: 'Dermatologie', location: 'Étage 1, Aile Est',
-    count: 41, status: 'busy', iconBg: '#fff7ed', iconColor: '#ea580c',
-    icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ea580c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-      </svg>
-    ),
-  },
-  {
-    id: '3', name: 'Neurologie', location: 'Étage 3, Zone Grise',
-    count: 12, status: 'normal', iconBg: '#f5f3ff', iconColor: '#7c3aed',
-    icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
-      </svg>
-    ),
-  },
-  {
-    id: '4', name: 'Pédiatrie', location: 'Étage 0, Aile Ouest',
-    count: 8, status: 'quiet', iconBg: '#f0fdf4', iconColor: '#16a34a',
-    icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="8" r="4" /><path d="M6 20v-2a6 6 0 0 1 12 0v2" />
-      </svg>
-    ),
-  },
-  {
-    id: '5', name: 'Ophtalmologie', location: 'Étage 1, Aile Sud',
-    count: 19, status: 'normal', iconBg: '#fdf2f8', iconColor: '#db2777',
-    icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#db2777" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
-      </svg>
-    ),
-  },
-  {
-    id: '6', name: 'Radiologie', location: 'Sous-sol, Zone Imagerie',
-    count: 38, status: 'high-load', iconBg: '#eff6ff', iconColor: '#2563eb',
-    highlighted: true,
-    icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="12" cy="12" r="3" />
-        <line x1="3" y1="12" x2="9" y2="12" /><line x1="15" y1="12" x2="21" y2="12" />
-      </svg>
-    ),
-  },
-]
-
 const trafficTimes = [
   { time: '09:00', level: 'Critique', pct: 85, color: '#2563eb' },
   { time: '11:00', level: 'Modéré', pct: 50, color: '#60a5fa' },
@@ -171,8 +111,53 @@ const trafficTimes = [
 
 export default function WaitingQueues() {
   const [activeNav, setActiveNav] = useState('waiting-queues')
-  const [selectedDate, setSelectedDate] = useState('2023-10-24')
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
+  const [departmentsList, setDepartmentsList] = useState<Department[]>([])
+  const [loading, setLoading] = useState(true)
+  const [userProfile, setUserProfile] = useState<any>(null)
+  
   const navigate = useNavigate()
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('medilink_user')
+    if (storedUser) {
+      const parsed = JSON.parse(storedUser)
+      setUserProfile(parsed)
+      
+      if (parsed.hopitalId) {
+        fetchServices(parsed.hopitalId)
+      } else {
+        setLoading(false)
+      }
+    } else {
+      setLoading(false)
+    }
+  }, [])
+
+  const fetchServices = async (hopitalId: number) => {
+    try {
+      const data = await serviceAPI.listerParHopital(hopitalId)
+      const mapped: Department[] = data.map((s: any, idx: number) => ({
+        id: s.id.toString(),
+        name: s.nom,
+        location: s.description || `Aile ${idx % 2 === 0 ? 'Nord' : 'Sud'}, Niveau ${Math.floor(idx/2) + 1}`,
+        count: 0, // Sera dynamisé avec l'API de file d'attente plus tard
+        status: idx % 3 === 0 ? 'busy' : idx % 4 === 0 ? 'quiet' : 'normal',
+        iconBg: idx % 2 === 0 ? '#eff6ff' : '#f5f3ff',
+        iconColor: idx % 2 === 0 ? '#2563eb' : '#7c3aed',
+        icon: (
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={idx % 2 === 0 ? '#2563eb' : '#7c3aed'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+          </svg>
+        ),
+      }))
+      setDepartmentsList(mapped)
+    } catch (err) {
+      console.error('Erreur fetch services:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const formatDate = (dateStr: string) => {
     const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long', year: 'numeric' }
@@ -181,11 +166,11 @@ export default function WaitingQueues() {
 
   const handleNav = (id: string) => {
     setActiveNav(id)
-    if (id === 'dashboard') navigate('/dashboard')
-    if (id === 'new-requests') navigate('/requests')
-    if (id === 'waiting-queues') navigate('/waiting-queues')
-    if (id === 'ticket-verification') navigate('/ticket-verification')
-    if (id === 'history') navigate('/history')
+    if (id === 'dashboard') navigate('/reception/dashboard')
+    if (id === 'new-requests') navigate('/reception/requests')
+    if (id === 'waiting-queues') navigate('/reception/waiting-queues')
+    if (id === 'ticket-verification') navigate('/reception/ticket-verification')
+    if (id === 'history') navigate('/reception/history')
   }
 
   return (
@@ -218,17 +203,17 @@ export default function WaitingQueues() {
         </nav>
 
         <div className="sidebar__emergency">
-          <button className="btn-emergency" onClick={() => navigate('/emergency-intake')}>
+          <button className="btn-emergency" onClick={() => navigate('/reception/emergency-intake')}>
             Ajouter sur place
           </button>
         </div>
 
         <div className="sidebar__footer">
           <div className="sidebar__footer-box">
-            <button className="footer-link" onClick={() => navigate('/settings')}>
+            <button className="footer-link" onClick={() => navigate('/reception/settings')}>
               <IconSettings /> <span>Paramètres</span>
             </button>
-            <button className="footer-link" onClick={() => navigate('/support')}>
+            <button className="footer-link" onClick={() => navigate('/reception/support')}>
               <IconSupport /> <span>Assistance</span>
             </button>
           </div>
@@ -267,18 +252,18 @@ export default function WaitingQueues() {
           </div>
 
           <div className="topbar__actions">
-            <button className="icon-btn" aria-label="Notifications" onClick={() => navigate('/notifications')}>
+            <button className="icon-btn" aria-label="Notifications" onClick={() => navigate('/reception/notifications')}>
               <IconBell />
               <span className="notif-dot" />
             </button>
-            <button className="icon-btn" aria-label="Aide" onClick={() => navigate('/help')}><IconHelp /></button>
+            <button className="icon-btn" aria-label="Aide" onClick={() => navigate('/reception/help')}><IconHelp /></button>
             <div className="topbar__divider" />
             <div className="topbar__user">
               <div className="topbar__user-info">
-                <span className="user-name">Jean Dupont</span>
-                <span className="user-role">Réceptionniste</span>
+                <span className="user-name">{userProfile?.name || 'Utilisateur'}</span>
+                <span className="user-role">{userProfile?.role === 'ACCUEIL' ? 'Réceptionniste' : userProfile?.role || 'Personnel'}</span>
               </div>
-              <div className="user-avatar">JD</div>
+              <div className="user-avatar">{userProfile?.name?.substring(0, 2).toUpperCase() || 'U'}</div>
             </div>
           </div>
         </header>
@@ -293,62 +278,72 @@ export default function WaitingQueues() {
                 <h1 className="page-title" style={{ margin: 0 }}>Files d'attente</h1>
                 <button 
                   className="wq-add-btn-circle" 
-                  onClick={() => navigate('/requests')}
+                  onClick={() => navigate('/reception/requests')}
                   title="Ajouter une nouvelle demande"
                 >
                   <IconPlus />
                 </button>
               </div>
               <p className="page-subtitle">
-                Vue en direct de la circulation des patients dans les services.<br />
+                Vue en direct de la circulation des patients dans les services de votre établissement.<br />
                 Priorisation du flux et clarté clinique.
               </p>
             </div>
             <div className="wq-hero__stats">
               <div className="wq-hero-stat">
                 <span className="wq-hero-stat__label">TOTAL PATIENTS</span>
-                <span className="wq-hero-stat__value">142</span>
+                <span className="wq-hero-stat__value">{departmentsList.reduce((acc, curr) => acc + curr.count, 0)}</span>
               </div>
               <div className="wq-hero-stat wq-hero-stat--muted">
                 <span className="wq-hero-stat__label">ATTENTE MOY.</span>
-                <span className="wq-hero-stat__value">18 min</span>
+                <span className="wq-hero-stat__value">-- min</span>
               </div>
             </div>
           </div>
 
           {/* Grille des départements */}
           <div className="dept-grid">
-            {departments.map((dept) => (
-              <div
-                key={dept.id}
-                className={`dept-card ${dept.highlighted ? 'dept-card--highlighted' : ''}`}
-                onClick={() => navigate(`/waiting-queues/${dept.id}`)}
-                style={{ cursor: 'pointer' }}
-              >
-                <div className="dept-card__top">
-                  <div className="dept-card__icon" style={{ background: dept.iconBg }}>
-                    {dept.icon}
-                  </div>
-                  <span className={`dept-status dept-status--${dept.status}`}>
-                    {statusLabel[dept.status]}
-                  </span>
-                </div>
-                <div className="dept-card__name">{dept.name}</div>
-                <div className="dept-card__location">{dept.location}</div>
-                <div className="dept-card__bottom">
-                  <div>
-                    <span className="dept-card__count">{String(dept.count).padStart(2, '0')}</span>
-                    <span className="dept-card__unit"> personnes</span>
-                  </div>
-                  <button
-                    className={`dept-card__btn ${dept.highlighted ? 'dept-card__btn--primary' : ''}`}
-                    onClick={(e) => { e.stopPropagation(); navigate(`/waiting-queues/${dept.id}`) }}
-                  >
-                    {dept.highlighted ? 'Détails' : <IconArrow />}
-                  </button>
-                </div>
+            {loading ? (
+              <div className="bg-white rounded-3xl p-20 text-center w-full col-span-3">
+                Chargement des services...
               </div>
-            ))}
+            ) : departmentsList.length === 0 ? (
+              <div className="bg-white rounded-3xl p-20 text-center w-full col-span-3">
+                Aucun service trouvé pour cet établissement.
+              </div>
+            ) : (
+              departmentsList.map((dept) => (
+                <div
+                  key={dept.id}
+                  className={`dept-card ${dept.highlighted ? 'dept-card--highlighted' : ''}`}
+                  onClick={() => navigate(`/reception/waiting-queues/${dept.id}`)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <div className="dept-card__top">
+                    <div className="dept-card__icon" style={{ background: dept.iconBg }}>
+                      {dept.icon}
+                    </div>
+                    <span className={`dept-status dept-status--${dept.status}`}>
+                      {statusLabel[dept.status]}
+                    </span>
+                  </div>
+                  <div className="dept-card__name">{dept.name}</div>
+                  <div className="dept-card__location">{dept.location}</div>
+                  <div className="dept-card__bottom">
+                    <div>
+                      <span className="dept-card__count">{String(dept.count).padStart(2, '0')}</span>
+                      <span className="dept-card__unit"> personnes</span>
+                    </div>
+                    <button
+                      className={`dept-card__btn ${dept.highlighted ? 'dept-card__btn--primary' : ''}`}
+                      onClick={(e) => { e.stopPropagation(); navigate(`/reception/waiting-queues/${dept.id}`) }}
+                    >
+                      {dept.highlighted ? 'Détails' : <IconArrow />}
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
 
           {/* Heures de pointe */}
@@ -380,12 +375,12 @@ export default function WaitingQueues() {
               <div className="staffing-card__icon"><IconAlert /></div>
               <div className="staffing-card__body">
                 <p className="staffing-card__text">
-                  <strong>Radiologie & Dermatologie</strong> dépassent la capacité de base.
+                  <strong>Flux de patients</strong> - Analyse en temps réel de votre établissement.
                 </p>
                 <p className="staffing-card__sub">
-                  Envisagez de réaffecter des infirmiers volants à l'Aile Est pour gérer l'augmentation de <span className="highlight-pct">22%</span> des arrivées.
+                  Le système surveille automatiquement les dépassements de capacité pour vous alerter.
                 </p>
-                <button className="staffing-card__link">VOIR LES SUGGESTIONS D'ALLOCATION →</button>
+                <button className="staffing-card__link" onClick={() => navigate('/reception/allocation-suggestions')}>VOIR LES SUGGESTIONS D'ALLOCATION →</button>
               </div>
             </div>
           </div>
@@ -395,3 +390,4 @@ export default function WaitingQueues() {
     </div>
   )
 }
+

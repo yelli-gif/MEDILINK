@@ -19,7 +19,7 @@ const ReorganizeQueue = () => {
           </div>
         </div>
         <nav className="hi-sidebar__nav">
-          <button className="hi-nav-item" onClick={() => navigate('/waiting-queues')}>Retour aux Files</button>
+          <button className="hi-nav-item" onClick={() => navigate('/reception/waiting-queues')}>Retour aux Files</button>
         </nav>
       </aside>
 
@@ -56,8 +56,8 @@ const ReorganizeQueue = () => {
           </div>
 
           <div style={{ marginTop: '24px', display: 'flex', gap: '12px' }}>
-            <button className="hi-btn-submit" onClick={() => navigate('/waiting-queues')}>Enregistrer les changements</button>
-            <button className="hi-btn-close" style={{ width: 'auto' }} onClick={() => navigate('/waiting-queues')}>Annuler</button>
+            <button className="hi-btn-submit" onClick={() => navigate('/reception/waiting-queues')}>Enregistrer les changements</button>
+            <button className="hi-btn-close" style={{ width: 'auto' }} onClick={() => navigate('/reception/waiting-queues')}>Annuler</button>
           </div>
         </div>
       </main>
@@ -66,3 +66,4 @@ const ReorganizeQueue = () => {
 };
 
 export default ReorganizeQueue;
+

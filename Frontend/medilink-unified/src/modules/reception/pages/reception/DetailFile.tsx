@@ -210,11 +210,11 @@ export default function DetailFile() {
   }
 
   const handleNav = (id: string) => {
-    if (id === 'dashboard') navigate('/dashboard')
-    if (id === 'new-requests') navigate('/requests')
-    if (id === 'waiting-queues') navigate('/waiting-queues')
-    if (id === 'ticket-verification') navigate('/ticket-verification')
-    if (id === 'history') navigate('/history')
+    if (id === 'dashboard') navigate('/reception/dashboard')
+    if (id === 'new-requests') navigate('/reception/requests')
+    if (id === 'waiting-queues') navigate('/reception/waiting-queues')
+    if (id === 'ticket-verification') navigate('/reception/ticket-verification')
+    if (id === 'history') navigate('/reception/history')
   }
 
   return (
@@ -247,17 +247,17 @@ export default function DetailFile() {
         </nav>
 
         <div className="sidebar__emergency">
-          <button className="btn-emergency" onClick={() => navigate('/emergency-intake')}>
+          <button className="btn-emergency" onClick={() => navigate('/reception/emergency-intake')}>
             Ajouter sur place
           </button>
         </div>
 
         <div className="sidebar__footer">
           <div className="sidebar__footer-box">
-            <button className="footer-link" onClick={() => navigate('/settings')}>
+            <button className="footer-link" onClick={() => navigate('/reception/settings')}>
               <IconSettings /> <span>Paramètres</span>
             </button>
-            <button className="footer-link" onClick={() => navigate('/support')}>
+            <button className="footer-link" onClick={() => navigate('/reception/support')}>
               <IconSupport /> <span>Assistance</span>
             </button>
           </div>
@@ -279,10 +279,10 @@ export default function DetailFile() {
           </div>
 
           <div className="topbar__actions">
-            <button className="icon-btn" aria-label="Notifications" onClick={() => navigate('/notifications')}>
+            <button className="icon-btn" aria-label="Notifications" onClick={() => navigate('/reception/notifications')}>
               <IconBell /><span className="notif-dot" />
             </button>
-            <button className="icon-btn" aria-label="Aide" onClick={() => navigate('/help')}><IconHelp /></button>
+            <button className="icon-btn" aria-label="Aide" onClick={() => navigate('/reception/help')}><IconHelp /></button>
             <div className="topbar__divider" />
             <div className="topbar__user">
               <div className="topbar__user-info">
@@ -298,7 +298,7 @@ export default function DetailFile() {
         <div className="page-body">
           {/* Breadcrumb */}
           <nav className="breadcrumb">
-            <button className="breadcrumb__link" onClick={() => navigate('/waiting-queues')}>
+            <button className="breadcrumb__link" onClick={() => navigate('/reception/waiting-queues')}>
               Files d'attente
             </button>
             <IconChevron />
@@ -409,7 +409,7 @@ export default function DetailFile() {
               <div className="action-card__icon"><IconCheckTask /></div>
               <h3 className="action-card__title">Ajouter manuellement</h3>
               <p className="action-card__desc">Inscrire un patient arrivé sans rendez-vous préalable.</p>
-              <button className="action-card__link" onClick={() => navigate('/emergency-intake')}>Ouvrir le formulaire</button>
+              <button className="action-card__link" onClick={() => navigate('/reception/emergency-intake')}>Ouvrir le formulaire</button>
             </div>
             <div className="action-card">
               <div className="action-card__icon"><IconShuffle /></div>
@@ -421,7 +421,7 @@ export default function DetailFile() {
               <div className="action-card__icon"><IconBarChart /></div>
               <h3 className="action-card__title">Rapport du jour</h3>
               <p className="action-card__desc">Consulter les statistiques de passage et d'attente.</p>
-              <button className="action-card__link" onClick={() => navigate('/history')}>Voir les statistiques</button>
+              <button className="action-card__link" onClick={() => navigate('/reception/history')}>Voir les statistiques</button>
             </div>
           </div>
         </div>
@@ -434,3 +434,4 @@ export default function DetailFile() {
     </div>
   )
 }
+

@@ -8,9 +8,9 @@ interface ConnexionProps {
 }
 
 /**
- * Décode un token JWT pour extraire le payload (email, role, etc.)
+ * Décode un token JWT pour extraire le payload complet
  */
-function decodeJWT(token: string): { sub: string; role: string; exp: number } | null {
+function decodeJWT(token: string): any {
   try {
     const payload = token.split('.')[1];
     const decoded = atob(payload);
@@ -45,7 +45,7 @@ const Connexion: React.FC<ConnexionProps> = ({ mode = 'login' }) => {
       // Stocker le JWT
       localStorage.setItem('medilink_token', token);
 
-      // Décoder le JWT pour récupérer le rôle
+      // Décoder le JWT pour récupérer toutes les infos
       const decoded = decodeJWT(token);
       if (!decoded) {
         setError('Erreur lors de la lecture du token');
@@ -56,13 +56,22 @@ const Connexion: React.FC<ConnexionProps> = ({ mode = 'login' }) => {
       const userRole = decoded.role; // ADMIN, MEDECIN, ACCUEIL, PHARMACIEN
       const userEmail = decoded.sub;
 
-      // Stocker les infos utilisateur
-      localStorage.setItem('medilink_user', JSON.stringify({
-        name: userEmail.split('@')[0], // On utilise la partie avant @ comme nom
+      // Stocker les infos utilisateur dynamiques
+      const userData: any = {
+        name: userEmail.split('@')[0],
         email: userEmail,
         role: userRole,
         isNew: false,
-      }));
+      };
+
+      // Ajouter les IDs métier si présents dans le token
+      if (decoded.hopitalId) userData.hopitalId = decoded.hopitalId;
+      if (decoded.medecinId) userData.medecinId = decoded.medecinId;
+      if (decoded.personnelId) userData.personnelId = decoded.personnelId;
+      if (decoded.pharmacieId) userData.pharmacieId = decoded.pharmacieId;
+      if (decoded.serviceId) userData.serviceId = decoded.serviceId;
+
+      localStorage.setItem('medilink_user', JSON.stringify(userData));
 
       // Redirection selon le rôle
       switch (userRole) {

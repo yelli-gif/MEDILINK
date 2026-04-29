@@ -7,12 +7,20 @@ import { useNavigate } from 'react-router-dom';
 const MedecinDashboard: React.FC = () => {
   const [appointments, setAppointments] = useState<any[]>([]);
   const [rdvCount, setRdvCount] = useState(0);
+  const [userProfile, setUserProfile] = useState({ name: 'Médecin' });
   const navigate = useNavigate();
 
   useEffect(() => {
+    const storedUser = localStorage.getItem('medilink_user');
+    if (storedUser) {
+      try {
+        const parsed = JSON.parse(storedUser);
+        setUserProfile({ name: parsed.name || 'Médecin' });
+      } catch (err) {}
+    }
+
     const loadAppointments = async () => {
       try {
-        // Récupérer les infos du médecin connecté
         const userStr = localStorage.getItem('medilink_user');
         const user = userStr ? JSON.parse(userStr) : null;
         if (user?.medecinId) {
@@ -33,7 +41,6 @@ const MedecinDashboard: React.FC = () => {
         }
       } catch (err) {
         console.error('Erreur chargement RDV médecin:', err);
-        // Fallback déjà défini
       }
     };
     loadAppointments();
@@ -44,10 +51,10 @@ const MedecinDashboard: React.FC = () => {
       {/* Title & Actions */}
       <div className="flex justify-between items-end mb-10">
         <div>
-          <h1 className="text-[32px] font-bold text-[#14152A] tracking-tight mb-2">Bonjour Dr. Dupont</h1>
+          <h1 className="text-[32px] font-bold text-[#14152A] tracking-tight mb-2">Bonjour {userProfile.name}</h1>
           <div className="flex items-center gap-3 text-[#5A5C6B] font-medium">
             <Calendar size={18} className="text-[#8B8D98]" />
-            <span>Mardi 24 Octobre 2023 — Vous avez 12 rendez-vous aujourd'hui.</span>
+            <span>{new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} — Vous avez {rdvCount} rendez-vous aujourd'hui.</span>
           </div>
         </div>
         <button className="bg-white border border-[#F0F2F5] text-[#14152A] font-bold px-6 py-3 rounded-2xl flex items-center gap-2 hover:bg-[#F8FAFC] transition-all shadow-sm">
@@ -61,9 +68,9 @@ const MedecinDashboard: React.FC = () => {
         <div className="bg-white p-6 rounded-[28px] border border-[#F0F2F5] shadow-sm flex items-center justify-between group hover:border-[#0055FF]/20 transition-all">
           <div>
             <p className="text-[#8B8D98] text-[12px] font-bold uppercase tracking-wider mb-2">RDV AUJOURD'HUI</p>
-            <h3 className="text-[40px] font-bold text-[#14152A] leading-none mb-2">12</h3>
+            <h3 className="text-[40px] font-bold text-[#14152A] leading-none mb-2">{rdvCount}</h3>
             <p className="text-[#28B880] text-[12px] font-bold flex items-center gap-1">
-              <ArrowUpRight size={14} /> +2 par rapport à hier
+              <ArrowUpRight size={14} /> Flux réel
             </p>
           </div>
           <div className="w-14 h-14 bg-[#F0F5FF] rounded-2xl flex items-center justify-center text-[#0055FF] group-hover:scale-110 transition-transform">
@@ -74,9 +81,9 @@ const MedecinDashboard: React.FC = () => {
         <div className="bg-white p-6 rounded-[28px] border border-[#F0F2F5] shadow-sm flex items-center justify-between group hover:border-[#0055FF]/20 transition-all">
           <div>
             <p className="text-[#8B8D98] text-[12px] font-bold uppercase tracking-wider mb-2">ORDONNANCES SEMAINE</p>
-            <h3 className="text-[40px] font-bold text-[#14152A] leading-none mb-2">45</h3>
+            <h3 className="text-[40px] font-bold text-[#14152A] leading-none mb-2">0</h3>
             <p className="text-[#5A5C6B] text-[12px] font-medium flex items-center gap-1">
-              Moyenne de 6.4 / jour
+              Aucune ordonnance
             </p>
           </div>
           <div className="w-14 h-14 bg-[#F0F5FF] rounded-2xl flex items-center justify-center text-[#0055FF] group-hover:scale-110 transition-transform">
@@ -87,9 +94,9 @@ const MedecinDashboard: React.FC = () => {
         <div className="bg-white p-6 rounded-[28px] border border-[#F0F2F5] shadow-sm flex items-center justify-between group hover:border-[#0055FF]/20 transition-all">
           <div>
             <p className="text-[#8B8D98] text-[12px] font-bold uppercase tracking-wider mb-2">PATIENTS EN ATTENTE</p>
-            <h3 className="text-[40px] font-bold text-[#14152A] leading-none mb-2">3</h3>
-            <p className="text-[#E64C3C] text-[12px] font-bold flex items-center gap-1">
-              <Clock size={14} /> Temps d'attente estimé : 15 min
+            <h3 className="text-[40px] font-bold text-[#14152A] leading-none mb-2">{appointments.filter(a => a.status === 'ATTENTE').length}</h3>
+            <p className="text-[#5A5C6B] text-[12px] font-bold flex items-center gap-1">
+              <Clock size={14} /> Aucun retard
             </p>
           </div>
           <div className="w-14 h-14 bg-[#F0F5FF] rounded-2xl flex items-center justify-center text-[#0055FF] group-hover:scale-110 transition-transform">
@@ -109,42 +116,48 @@ const MedecinDashboard: React.FC = () => {
           </div>
 
           <div className="space-y-4">
-            {appointments.map((appt, idx) => (
-              <div 
-                key={idx} 
-                className={`group bg-white rounded-3xl p-6 border border-[#F0F2F5] flex items-center gap-6 shadow-sm transition-all hover:shadow-md ${appt.status === 'EN COURS' ? 'border-l-4 border-l-[#0055FF]' : ''}`}
-              >
-                <div className="flex flex-col items-center justify-center w-24 border-r border-[#F0F2F5] pr-6">
-                  <span className="text-2xl font-bold text-[#14152A]">{appt.time}</span>
-                  <span className="text-[10px] font-bold text-[#8B8D98] uppercase tracking-wider">{appt.status}</span>
-                </div>
-
-                <div className="flex-grow">
-                  <div className="flex items-center gap-3 mb-1">
-                    <h4 className="text-[18px] font-bold text-[#14152A]">{appt.patient}</h4>
-                    {appt.type && (
-                      <span className={`text-[9px] font-bold px-2 py-1 rounded-md uppercase tracking-widest ${appt.type === 'NOUVEAU' ? 'bg-[#E5F7ED] text-[#1E9565]' : 'bg-[#EBF1FF] text-[#0055FF]'}`}>
-                        {appt.type}
-                      </span>
-                    )}
-                    {appt.id && <span className="text-[11px] font-medium text-[#8B8D98]">{appt.id}</span>}
-                  </div>
-                  <p className="text-[#5A5C6B] text-[14px] font-medium">{appt.detail}</p>
-                </div>
-
-                {appt.action && (
-                  <button 
-                    onClick={() => navigate('/medecin/prescription')}
-                    className={`px-6 py-3 rounded-2xl font-bold text-[14px] transition-all ${appt.status === 'EN COURS' ? 'bg-[#0055FF] text-white hover:bg-[#0047D6]' : 'bg-white border border-[#0055FF] text-[#0055FF] hover:bg-[#F0F5FF]'}`}
-                  >
-                    {appt.action}
-                  </button>
-                )}
-                {!appt.action && (
-                  <ChevronRight className="text-[#D1D5DB]" />
-                )}
+            {appointments.length === 0 ? (
+              <div className="bg-white rounded-3xl p-10 border border-[#F0F2F5] text-center text-[#8B8D98]">
+                Aucun rendez-vous prévu pour le moment.
               </div>
-            ))}
+            ) : (
+              appointments.map((appt, idx) => (
+                <div 
+                  key={idx} 
+                  className={`group bg-white rounded-3xl p-6 border border-[#F0F2F5] flex items-center gap-6 shadow-sm transition-all hover:shadow-md ${appt.status === 'EN COURS' ? 'border-l-4 border-l-[#0055FF]' : ''}`}
+                >
+                  <div className="flex flex-col items-center justify-center w-24 border-r border-[#F0F2F5] pr-6">
+                    <span className="text-2xl font-bold text-[#14152A]">{appt.time}</span>
+                    <span className="text-[10px] font-bold text-[#8B8D98] uppercase tracking-wider">{appt.status}</span>
+                  </div>
+
+                  <div className="flex-grow">
+                    <div className="flex items-center gap-3 mb-1">
+                      <h4 className="text-[18px] font-bold text-[#14152A]">{appt.patient}</h4>
+                      {appt.type && (
+                        <span className={`text-[9px] font-bold px-2 py-1 rounded-md uppercase tracking-widest ${appt.type === 'NOUVEAU' ? 'bg-[#E5F7ED] text-[#1E9565]' : 'bg-[#EBF1FF] text-[#0055FF]'}`}>
+                          {appt.type}
+                        </span>
+                      )}
+                      {appt.id && <span className="text-[11px] font-medium text-[#8B8D98]">{appt.id}</span>}
+                    </div>
+                    <p className="text-[#5A5C6B] text-[14px] font-medium">{appt.detail}</p>
+                  </div>
+
+                  {appt.action && (
+                    <button 
+                      onClick={() => navigate('/medecin/prescription')}
+                      className={`px-6 py-3 rounded-2xl font-bold text-[14px] transition-all ${appt.status === 'EN COURS' ? 'bg-[#0055FF] text-white hover:bg-[#0047D6]' : 'bg-white border border-[#0055FF] text-[#0055FF] hover:bg-[#F0F5FF]'}`}
+                    >
+                      {appt.action}
+                    </button>
+                  )}
+                  {!appt.action && (
+                    <ChevronRight className="text-[#D1D5DB]" />
+                  )}
+                </div>
+              ))
+            )}
           </div>
         </div>
 
@@ -154,19 +167,12 @@ const MedecinDashboard: React.FC = () => {
           <div className="bg-white rounded-[28px] p-6 border border-[#F0F2F5] shadow-sm">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-[18px] font-bold text-[#14152A]">Alertes Patient</h3>
-              <AlertTriangle className="text-[#E64C3C]" size={20} />
+              <AlertTriangle className="text-[#8B8D98]" size={20} />
             </div>
 
             <div className="space-y-4">
-              <div className="bg-[#FFF4F4] border border-[#FFE4E4] rounded-2xl p-4">
-                <span className="text-[10px] font-bold text-[#E64C3C] uppercase tracking-wider block mb-1">CRITIQUE</span>
-                <p className="text-[14px] font-bold text-[#14152A] mb-1">Mme. Girard - Glycémie haute</p>
-                <p className="text-[12px] text-[#5A5C6B]">Dernier relevé : 2.4 g/L</p>
-              </div>
-
-              <div className="bg-[#FFF9F2] border border-[#FFEDE0] rounded-2xl p-4">
-                <span className="text-[10px] font-bold text-[#E05F2D] uppercase tracking-wider block mb-1">RAPPEL</span>
-                <p className="text-[14px] font-bold text-[#14152A] mb-1">M. Thomas - Labo en attente</p>
+              <div className="text-center py-4 text-[#8B8D98] text-sm">
+                Aucune alerte critique.
               </div>
             </div>
           </div>

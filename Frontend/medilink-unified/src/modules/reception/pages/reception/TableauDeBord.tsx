@@ -196,11 +196,11 @@ export default function Dashboard() {
 
   const handleNav = (id: string) => {
     setActiveNav(id)
-    if (id === 'dashboard') navigate('/dashboard')
-    if (id === 'new-requests') navigate('/requests')
-    if (id === 'waiting-queues') navigate('/waiting-queues')
-    if (id === 'ticket-verification') navigate('/ticket-verification')
-    if (id === 'history') navigate('/history')
+    if (id === 'dashboard') navigate('/reception/dashboard')
+    if (id === 'new-requests') navigate('/reception/requests')
+    if (id === 'waiting-queues') navigate('/reception/waiting-queues')
+    if (id === 'ticket-verification') navigate('/reception/ticket-verification')
+    if (id === 'history') navigate('/reception/history')
   }
 
   const filtered = patientsList.filter(
@@ -243,17 +243,17 @@ export default function Dashboard() {
         </nav>
 
         <div className="sidebar__emergency">
-          <button className="btn-emergency" onClick={() => navigate('/emergency-intake')}>
+          <button className="btn-emergency" onClick={() => navigate('/reception/emergency-intake')}>
             Ajouter sur place
           </button>
         </div>
 
         <div className="sidebar__footer">
           <div className="sidebar__footer-box">
-            <button className="footer-link" onClick={() => navigate('/settings')}>
+            <button className="footer-link" onClick={() => navigate('/reception/settings')}>
               <IconSettings /> <span>Paramètres</span>
             </button>
-            <button className="footer-link" onClick={() => navigate('/support')}>
+            <button className="footer-link" onClick={() => navigate('/reception/support')}>
               <IconSupport /> <span>Assistance</span>
             </button>
           </div>
@@ -294,8 +294,8 @@ export default function Dashboard() {
           </div>
 
           <div className="topbar__actions">
-            <button className="icon-btn" aria-label="Notifications" onClick={() => navigate('/notifications')}><IconBell /></button>
-            <button className="icon-btn" aria-label="Aide" onClick={() => navigate('/help')}><IconHelp /></button>
+            <button className="icon-btn" aria-label="Notifications" onClick={() => navigate('/reception/notifications')}><IconBell /></button>
+            <button className="icon-btn" aria-label="Aide" onClick={() => navigate('/reception/help')}><IconHelp /></button>
             <div className="topbar__divider" />
             <div className="topbar__user" onClick={() => navigate('/connexion')} style={{ cursor: 'pointer' }}>
               <div className="topbar__user-info">
@@ -311,9 +311,9 @@ export default function Dashboard() {
         <div className="page-body">
           {/* Titre de la page */}
           <div className="page-title-block">
-            <h1 className="page-title">Tableau de bord</h1>
+            <h1 className="page-title">Bonjour {userProfile.name}</h1>
             <p className="page-subtitle">
-              Bienvenue sur votre station d'accueil. Gérez les flux de patients et les priorités en temps réel.
+              Bienvenue sur votre station d'accueil. Nous sommes le {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}.
             </p>
           </div>
 
@@ -366,7 +366,7 @@ export default function Dashboard() {
             <div className="appointments-header">
               <div>
                 <h2 className="appointments-title">Rendez-vous validés</h2>
-                <p className="appointments-subtitle">Flux de patients pour la matinée du 24 octobre</p>
+                <p className="appointments-subtitle">Flux de patients pour la journée du {new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}</p>
               </div>
               <div className="appointments-controls">
                 <button
@@ -422,3 +422,4 @@ export default function Dashboard() {
     </div>
   )
 }
+

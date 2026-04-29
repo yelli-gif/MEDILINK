@@ -5,21 +5,31 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
 import java.security.Key;
 import java.util.Date;
+import java.util.Map;
 
 @Component
 public class JwtUtils {
 
     private static final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
 
-    /** Génère un token JWT contenant l'email ET le rôle de l'utilisateur. */
-    public String generateToken(String email, String role) {
-        return Jwts.builder()
+    /** Génère un token JWT contenant l'email, le rôle et des infos additionnelles. */
+    public String generateToken(String email, String role, Map<String, Object> extraClaims) {
+        JwtBuilder builder = Jwts.builder()
                 .setSubject(email)
-                .claim("role", role)                                         // ← rôle embarqué
+                .claim("role", role)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 86_400_000)) // 24h
-                .signWith(key)
-                .compact();
+                .setExpiration(new Date(System.currentTimeMillis() + 86_400_000)); // 24h
+
+        if (extraClaims != null) {
+            extraClaims.forEach(builder::claim);
+        }
+
+        return builder.signWith(key).compact();
+    }
+
+    /** Reste inchangé pour la compatibilité si besoin (ou à supprimer si tout est migré) */
+    public String generateToken(String email, String role) {
+        return generateToken(email, role, null);
     }
 
     /** Valide la signature et l'expiration du token. */
@@ -42,7 +52,7 @@ public class JwtUtils {
         return parseClaims(token).get("role", String.class);
     }
 
-    private Claims parseClaims(String token) {
+    public Claims parseClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()

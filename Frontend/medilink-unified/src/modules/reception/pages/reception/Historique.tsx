@@ -153,11 +153,11 @@ export default function Historique() {
 
   const handleNav = (id: string) => {
     setActiveNav(id)
-    if (id === 'dashboard') navigate('/dashboard')
-    if (id === 'new-requests') navigate('/requests')
-    if (id === 'waiting-queues') navigate('/waiting-queues')
-    if (id === 'ticket-verification') navigate('/ticket-verification')
-    if (id === 'history') navigate('/history')
+    if (id === 'dashboard') navigate('/reception/dashboard')
+    if (id === 'new-requests') navigate('/reception/requests')
+    if (id === 'waiting-queues') navigate('/reception/waiting-queues')
+    if (id === 'ticket-verification') navigate('/reception/ticket-verification')
+    if (id === 'history') navigate('/reception/history')
   }
 
   return (
@@ -190,17 +190,17 @@ export default function Historique() {
         </nav>
 
         <div className="sidebar__emergency">
-          <button className="btn-emergency" onClick={() => navigate('/emergency-intake')}>
+          <button className="btn-emergency" onClick={() => navigate('/reception/emergency-intake')}>
             Ajouter sur place
           </button>
         </div>
 
         <div className="sidebar__footer">
           <div className="sidebar__footer-box">
-            <button className="footer-link" onClick={() => navigate('/settings')}>
+            <button className="footer-link" onClick={() => navigate('/reception/settings')}>
               <IconSettings /> <span>Paramètres</span>
             </button>
-            <button className="footer-link" onClick={() => navigate('/support')}>
+            <button className="footer-link" onClick={() => navigate('/reception/support')}>
               <IconSupport /> <span>Assistance</span>
             </button>
           </div>
@@ -224,8 +224,8 @@ export default function Historique() {
           </div>
 
           <div className="topbar__actions">
-            <button className="icon-btn" aria-label="Notifications" onClick={() => navigate('/notifications')}><IconBell /></button>
-            <button className="icon-btn" aria-label="Aide" onClick={() => navigate('/help')}><IconHelp /></button>
+            <button className="icon-btn" aria-label="Notifications" onClick={() => navigate('/reception/notifications')}><IconBell /></button>
+            <button className="icon-btn" aria-label="Aide" onClick={() => navigate('/reception/help')}><IconHelp /></button>
             <div className="topbar__divider" />
             <div className="topbar__user">
               <div className="topbar__user-info">
@@ -365,3 +365,4 @@ export default function Historique() {
     </div>
   )
 }
+

@@ -147,11 +147,11 @@ export default function VerificationTicket() {
 
   const handleNav = (id: string) => {
     setActiveNav(id)
-    if (id === 'dashboard') navigate('/dashboard')
-    if (id === 'new-requests') navigate('/requests')
-    if (id === 'waiting-queues') navigate('/waiting-queues')
-    if (id === 'ticket-verification') navigate('/ticket-verification')
-    if (id === 'history') navigate('/history')
+    if (id === 'dashboard') navigate('/reception/dashboard')
+    if (id === 'new-requests') navigate('/reception/requests')
+    if (id === 'waiting-queues') navigate('/reception/waiting-queues')
+    if (id === 'ticket-verification') navigate('/reception/ticket-verification')
+    if (id === 'history') navigate('/reception/history')
   }
 
   const handleVerify = () => {
@@ -206,7 +206,7 @@ export default function VerificationTicket() {
         </nav>
 
         <div className="sidebar__emergency">
-          <button className="btn-emergency" onClick={() => navigate('/emergency-intake')}>
+          <button className="btn-emergency" onClick={() => navigate('/reception/emergency-intake')}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
               <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
               <line x1="7.05" y1="7.05" x2="16.95" y2="16.95" /><line x1="16.95" y1="7.05" x2="7.05" y2="16.95" />
@@ -217,10 +217,10 @@ export default function VerificationTicket() {
 
         <div className="sidebar__footer">
           <div className="sidebar__footer-box">
-            <button className="footer-link" onClick={() => navigate('/settings')}>
+            <button className="footer-link" onClick={() => navigate('/reception/settings')}>
               <IconSettings /> <span>Paramètres</span>
             </button>
-            <button className="footer-link" onClick={() => navigate('/support')}>
+            <button className="footer-link" onClick={() => navigate('/reception/support')}>
               <IconSupport /> <span>Assistance</span>
             </button>
           </div>
@@ -242,8 +242,8 @@ export default function VerificationTicket() {
           </div>
 
           <div className="vt-topbar__actions">
-            <button className="vt-icon-btn" onClick={() => navigate('/notifications')}><IconBell /></button>
-            <button className="vt-icon-btn" onClick={() => navigate('/help')}><IconHelp /></button>
+            <button className="vt-icon-btn" onClick={() => navigate('/reception/notifications')}><IconBell /></button>
+            <button className="vt-icon-btn" onClick={() => navigate('/reception/help')}><IconHelp /></button>
             <div className="topbar__divider" />
             <div className="hi-user-info">
               <span className="user-name">Jean Dupont</span>
@@ -417,3 +417,4 @@ export default function VerificationTicket() {
     </div>
   )
 }
+

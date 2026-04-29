@@ -19,7 +19,7 @@ const Support = () => {
           </div>
         </div>
         <nav className="hi-sidebar__nav">
-          <button className="hi-nav-item" onClick={() => navigate('/dashboard')}>Retour au Tableau de Bord</button>
+          <button className="hi-nav-item" onClick={() => navigate('/reception/dashboard')}>Retour au Tableau de Bord</button>
         </nav>
       </aside>
 
@@ -62,3 +62,4 @@ const Support = () => {
 };
 
 export default Support;
+
