@@ -16,7 +16,7 @@ public class Service {
 
     private String nom;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(name = "created_at", nullable = true, updatable = false)
     private java.time.LocalDateTime createdAt;
 
     @PrePersist

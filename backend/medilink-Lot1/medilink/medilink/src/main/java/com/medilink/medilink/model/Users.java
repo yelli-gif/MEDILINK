@@ -23,7 +23,7 @@ public class Users {
     @Enumerated(EnumType.STRING)
     private Role role; // ADMIN, MEDECIN, ACCUEIL
 
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(name = "created_at", nullable = true, updatable = false)
     private java.time.LocalDateTime createdAt;
 
     @PrePersist

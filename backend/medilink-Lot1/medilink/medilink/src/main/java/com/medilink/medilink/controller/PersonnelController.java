@@ -92,9 +92,14 @@ public class PersonnelController {
             
             // Liaison obligatoire avec l'utilisateur (MapsId)
             if (medecin.getId() != null) {
-                Users user = usersRepository.findById(medecin.getId())
-                    .orElseThrow(() -> new RuntimeException("Utilisateur introuvable avec l'ID: " + medecin.getId()));
+                Long requestedId = medecin.getId();
+                Users user = usersRepository.findById(requestedId)
+                    .orElseThrow(() -> new RuntimeException("Utilisateur introuvable avec l'ID: " + requestedId));
+                
+                System.out.println("DEBUG: Utilisateur trouvé: " + user.getEmail() + " (ID: " + user.getId() + ")");
                 medecin.setUser(user);
+                // On s'assure que l'ID est bien positionné (important pour @MapsId)
+                medecin.setId(user.getId()); 
             } else {
                 return ResponseEntity.badRequest().body("L'ID de l'utilisateur est obligatoire");
             }
@@ -109,8 +114,9 @@ public class PersonnelController {
                 medecin.setCreatedAt(java.time.LocalDateTime.now());
             }
 
+            System.out.println("DEBUG: Sauvegarde finale du médecin...");
             Medecin saved = medecinRepository.save(medecin);
-            System.out.println("DEBUG: Profil médecin créé avec succès");
+            System.out.println("DEBUG: Profil médecin créé avec succès ID: " + saved.getId());
             return ResponseEntity.ok(saved);
         } catch (Exception e) {
             System.err.println("ERROR during medecin creation: " + e.getMessage());
@@ -124,20 +130,34 @@ public class PersonnelController {
      * Test : POST http://localhost:8081/api/personnel/accueil
      */
     @PostMapping("/accueil")
-    public Acceuil saveAcceuil(@RequestBody Acceuil acceuil) {
-        // Liaison obligatoire avec l'utilisateur (MapsId)
-        if (acceuil.getId() != null) {
-            usersRepository.findById(acceuil.getId()).ifPresent(acceuil::setUser);
-        }
+    public ResponseEntity<?> saveAcceuil(@RequestBody Acceuil acceuil) {
+        try {
+            System.out.println("DEBUG: Tentative de création profil accueil pour ID: " + acceuil.getId());
+            
+            if (acceuil.getId() != null) {
+                Users user = usersRepository.findById(acceuil.getId())
+                        .orElseThrow(() -> new RuntimeException("Utilisateur introuvable avec ID: " + acceuil.getId()));
+                acceuil.setUser(user);
+                acceuil.setId(user.getId());
+            } else {
+                return ResponseEntity.badRequest().body("L'ID de l'utilisateur est obligatoire");
+            }
 
-        // Liaison avec l'hôpital
-        if (acceuil.getHopital() != null && acceuil.getHopital().getId() != null) {
-            hopitalRepository.findById(acceuil.getHopital().getId())
-                    .ifPresent(acceuil::setHopital);
+            if (acceuil.getHopital() != null && acceuil.getHopital().getId() != null) {
+                hopitalRepository.findById(acceuil.getHopital().getId())
+                        .ifPresent(acceuil::setHopital);
+            }
+            if (acceuil.getCreatedAt() == null) {
+                acceuil.setCreatedAt(java.time.LocalDateTime.now());
+            }
+
+            System.out.println("DEBUG: Sauvegarde finale de l'agent d'accueil...");
+            Acceuil saved = acceuilRepository.save(acceuil);
+            return ResponseEntity.ok(saved);
+        } catch (Exception e) {
+            System.err.println("ERROR during accueil creation: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Erreur interne : " + e.getMessage());
         }
-        if (acceuil.getCreatedAt() == null) {
-            acceuil.setCreatedAt(java.time.LocalDateTime.now());
-        }
-        return acceuilRepository.save(acceuil);
     }
 }

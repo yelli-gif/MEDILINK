@@ -23,7 +23,7 @@ public class Acceuil {
     @JsonIgnore // Évite la boucle infinie avec Users
     private Users user; // Lien avec le compte utilisateur (Socle)
 
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(name = "created_at", nullable = true, updatable = false)
     private java.time.LocalDateTime createdAt;
 
     @PrePersist
