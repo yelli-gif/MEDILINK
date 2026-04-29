@@ -57,6 +57,13 @@ public class AuthController {
                         claims.put("personnelId", res.get(0).get("id"));
                         claims.put("hopitalId", res.get(0).get("hopital_id"));
                     }
+                } else if ("ADMIN".equals(roleStr)) {
+                    List<Map<String, Object>> res = jdbcTemplate.queryForList(
+                        "SELECT id, hopital_id FROM admin WHERE id = ?", user.getId());
+                    if (!res.isEmpty()) {
+                        claims.put("adminId", res.get(0).get("id"));
+                        claims.put("hopitalId", res.get(0).get("hopital_id"));
+                    }
                 } else if ("PHARMACIEN".equals(roleStr)) {
                     // Pour pharmacien, on utilise JDBC car le mapping JPA est parfois complexe
                     List<Map<String, Object>> ph = jdbcTemplate.queryForList(

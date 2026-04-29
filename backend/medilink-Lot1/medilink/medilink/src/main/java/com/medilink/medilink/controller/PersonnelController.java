@@ -1,9 +1,11 @@
 package com.medilink.medilink.controller;
 
 import com.medilink.medilink.model.Acceuil;
+import com.medilink.medilink.model.Admin;
 import com.medilink.medilink.model.Medecin;
 import com.medilink.medilink.model.Users;
 import com.medilink.medilink.repository.AcceuilRepository;
+import com.medilink.medilink.repository.AdminRepository;
 import com.medilink.medilink.repository.HopitalRepository;
 import com.medilink.medilink.repository.MedecinRepository;
 import com.medilink.medilink.repository.ServiceRepository;
@@ -23,6 +25,9 @@ public class PersonnelController {
 
     @Autowired
     private AcceuilRepository acceuilRepository;
+
+    @Autowired
+    private AdminRepository adminRepository;
 
     @Autowired
     private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
@@ -58,6 +63,17 @@ public class PersonnelController {
             return acceuilRepository.findByHopital_Id(hopitalId);
         }
         return acceuilRepository.findAll();
+    }
+
+    /**
+     * Lister TOUS les administrateurs (filtrés par hôpital si fourni)
+     */
+    @GetMapping("/admin")
+    public List<Admin> getAllAdmin(@RequestParam(required = false) Long hopitalId) {
+        if (hopitalId != null) {
+            return adminRepository.findByHopital_Id(hopitalId);
+        }
+        return adminRepository.findAll();
     }
 
     /**
@@ -149,6 +165,42 @@ public class PersonnelController {
             );
 
             System.out.println("DEBUG: Insert SQL réussi pour Accueil ID=" + id);
+            return ResponseEntity.ok().body("{\"id\": " + id + ", \"status\": \"success\"}");
+        } catch (Exception e) {
+            System.err.println("SQL ERROR: " + e.getMessage());
+            return ResponseEntity.status(500).body("Erreur SQL : " + e.getMessage());
+        }
+    }
+
+    /**
+     * Ajouter/Associer un administrateur à un hôpital
+     * Test : POST http://localhost:8081/api/personnel/admin
+     */
+    @PostMapping("/admin")
+    public ResponseEntity<?> saveAdmin(@RequestBody java.util.Map<String, Object> payload) {
+        try {
+            System.out.println("DEBUG: Native SQL Insert pour Admin: " + payload);
+            
+            Long id = payload.get("id") != null ? Long.valueOf(payload.get("id").toString()) : null;
+            String nom = (String) payload.get("nom");
+            String prenom = (String) payload.get("prenom");
+            
+            if (id == null) return ResponseEntity.badRequest().body("ID manquant");
+
+            // Résolution hopital_id
+            Long hopitalId = null;
+            if (payload.get("hopital") != null) {
+                java.util.Map<String, Object> hMap = (java.util.Map<String, Object>) payload.get("hopital");
+                if (hMap.get("id") != null) hopitalId = Long.valueOf(hMap.get("id").toString());
+            }
+
+            // INSERT NATIVE
+            jdbcTemplate.update(
+                "INSERT INTO admin (id, nom, prenom, created_at, hopital_id) VALUES (?, ?, ?, ?, ?)",
+                id, nom, prenom, java.time.LocalDateTime.now(), hopitalId
+            );
+
+            System.out.println("DEBUG: Insert SQL réussi pour Admin ID=" + id);
             return ResponseEntity.ok().body("{\"id\": " + id + ", \"status\": \"success\"}");
         } catch (Exception e) {
             System.err.println("SQL ERROR: " + e.getMessage());
