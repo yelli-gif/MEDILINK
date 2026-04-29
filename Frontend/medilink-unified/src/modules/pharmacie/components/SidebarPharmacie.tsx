@@ -15,6 +15,7 @@ export default function SidebarPharmacie(): React.JSX.Element {
   const [userProfile, setUserProfile] = useState({
     name: 'Dr. Julian Vance',
     role: 'Pharmacien Chef',
+    pharmacieName: 'Pharmacie Centrale',
     avatarUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDeQOZNWsTf-6E9sCIn-nihM4azUkSoTdlH71mUOXdQnBdC5qXukWzq8Zxf1_4pmzrWCrgyrgh9vXd1bwM97FE9YSz5uRBIZ5aaigewqRoRgpAN-x_zvC9OMy-fLW77QxDRRCvhDMzb8c_q1bCHmQobYx6xuFzQ3NGXDLrY1ZFjy2xYtoq5pnjVLPCIKOgMnCsYYRS7J7uWuelCqpdTbgldRV-mm8zWI3Bsb7o7kyP5YAOHUtEWQJXJssHOM3GfVCgdezkRDDwG52w'
   });
 
@@ -29,6 +30,7 @@ export default function SidebarPharmacie(): React.JSX.Element {
           ...prev,
           name: parsed.name || prev.name,
           role: parsed.role || prev.role,
+          pharmacieName: parsed.pharmacieName || prev.pharmacieName,
           avatarUrl: parsed.avatarUrl || prev.avatarUrl
         }));
       } catch (err) {
@@ -50,7 +52,7 @@ export default function SidebarPharmacie(): React.JSX.Element {
           </div>
           <div>
             <h1 className="text-xl font-black tracking-tight text-slate-900 font-manrope">Medilink</h1>
-            <p className="text-[10px] text-slate-400 uppercase tracking-widest font-black">Espace Pharmacie</p>
+            <p className="text-[10px] text-slate-400 uppercase tracking-widest font-black">{userProfile.pharmacieName}</p>
           </div>
         </div>
         

@@ -11,7 +11,7 @@ interface PrescriptionContextType {
 const PrescriptionContext = createContext<PrescriptionContextType | undefined>(undefined);
 
 export function PrescriptionProvider({ children }: { children: ReactNode }) {
-  const [prescriptions, setPrescriptions] = useState<HistoryRecord[]>(MOCK_PRESCRIPTIONS);
+  const [prescriptions, setPrescriptions] = useState<HistoryRecord[]>([]);
 
   const updatePrescriptionStatus = (id: string, status: HistoryRecord['status']) => {
     setPrescriptions(prev => prev.map(p => p.id === id ? { ...p, status } : p));

@@ -35,8 +35,9 @@ public class MockDataService implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) throws Exception {
-        chargerPharmacies();
-        chargerOrdonnance();
+        // Désactivé pour n'utiliser que les données réelles
+        // chargerPharmacies();
+        // chargerOrdonnance();
     }
 
     private void chargerPharmacies() {

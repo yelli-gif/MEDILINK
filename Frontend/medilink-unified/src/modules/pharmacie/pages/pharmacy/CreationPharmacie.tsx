@@ -139,7 +139,15 @@ export default function CreationPharmacie() {
       });
       console.log("Étape 3 Réussie.");
 
-      // 4. Rediriger
+      // 4. Sauvegarder la session locale pour l'affichage
+      localStorage.setItem('medilink_user', JSON.stringify({
+        name: overseer,
+        role: 'Pharmacien',
+        email: email,
+        pharmacieName: name
+      }));
+
+      // 5. Rediriger
       console.log("TOUT EST OK. Redirection...");
       navigate('/pharmacie/dashboard');
     } catch (err: any) {
