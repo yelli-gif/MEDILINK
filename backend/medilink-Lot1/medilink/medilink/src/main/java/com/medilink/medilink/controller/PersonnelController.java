@@ -24,6 +24,9 @@ public class PersonnelController {
     @Autowired
     private AcceuilRepository acceuilRepository;
 
+    @Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
+
     // ==========================================
     //          MÉTHODES GET (Lister)
     // ==========================================
@@ -86,42 +89,34 @@ public class PersonnelController {
      * Test : POST http://localhost:8081/api/personnel/medecins
      */
     @PostMapping("/medecins")
-    public ResponseEntity<?> saveMedecin(@RequestBody Medecin medecin) {
+    public ResponseEntity<?> saveMedecin(@RequestBody java.util.Map<String, Object> payload) {
         try {
-            System.out.println("DEBUG: Tentative de création du profil médecin pour l'ID: " + medecin.getId());
+            System.out.println("DEBUG: Native SQL Insert pour Medecin: " + payload);
             
-            // Liaison obligatoire avec l'utilisateur (MapsId)
-            if (medecin.getId() != null) {
-                Long requestedId = medecin.getId();
-                Users user = usersRepository.findById(requestedId)
-                    .orElseThrow(() -> new RuntimeException("Utilisateur introuvable avec l'ID: " + requestedId));
-                
-                System.out.println("DEBUG: Utilisateur trouvé: " + user.getEmail() + " (ID: " + user.getId() + ")");
-                medecin.setUser(user);
-                // On s'assure que l'ID est bien positionné (important pour @MapsId)
-                medecin.setId(user.getId()); 
-            } else {
-                return ResponseEntity.badRequest().body("L'ID de l'utilisateur est obligatoire");
+            Long id = payload.get("id") != null ? Long.valueOf(payload.get("id").toString()) : null;
+            String nom = (String) payload.get("nom");
+            String prenom = (String) payload.get("prenom");
+            
+            if (id == null) return ResponseEntity.badRequest().body("ID manquant");
+
+            // Résolution du service_id
+            Long serviceId = null;
+            if (payload.get("specialite") != null) {
+                String spec = (String) payload.get("specialite");
+                serviceId = serviceRepository.findByNom(spec).map(s -> s.getId()).orElse(null);
             }
 
-            // Résolution du service par nom si l'ID est manquant
-            if (medecin.getService() != null && medecin.getService().getNom() != null) {
-                serviceRepository.findByNom(medecin.getService().getNom())
-                        .ifPresent(medecin::setService);
-            }
-            
-            if (medecin.getCreatedAt() == null) {
-                medecin.setCreatedAt(java.time.LocalDateTime.now());
-            }
+            // INSERT NATIVE
+            jdbcTemplate.update(
+                "INSERT INTO medecin (id, nom, prenom, created_at, service_id) VALUES (?, ?, ?, ?, ?)",
+                id, nom, prenom, java.time.LocalDateTime.now(), serviceId
+            );
 
-            System.out.println("DEBUG: Sauvegarde finale du médecin...");
-            Medecin saved = medecinRepository.save(medecin);
-            System.out.println("DEBUG: Profil médecin créé avec succès ID: " + saved.getId());
-            return ResponseEntity.ok(saved);
+            System.out.println("DEBUG: Insert SQL réussi pour Medecin ID=" + id);
+            return ResponseEntity.ok().body("{\"id\": " + id + ", \"status\": \"success\"}");
         } catch (Exception e) {
-            System.err.println("ERROR during medecin creation: " + e.getMessage());
-            e.printStackTrace();
-            return ResponseEntity.status(500).body("Erreur interne : " + e.getMessage());
+            System.err.println("SQL ERROR: " + e.getMessage());
+            return ResponseEntity.status(500).body("Erreur SQL : " + e.getMessage());
         }
     }
 
@@ -130,34 +125,34 @@ public class PersonnelController {
      * Test : POST http://localhost:8081/api/personnel/accueil
      */
     @PostMapping("/accueil")
-    public ResponseEntity<?> saveAcceuil(@RequestBody Acceuil acceuil) {
+    public ResponseEntity<?> saveAcceuil(@RequestBody java.util.Map<String, Object> payload) {
         try {
-            System.out.println("DEBUG: Tentative de création profil accueil pour ID: " + acceuil.getId());
+            System.out.println("DEBUG: Native SQL Insert pour Accueil: " + payload);
             
-            if (acceuil.getId() != null) {
-                Users user = usersRepository.findById(acceuil.getId())
-                        .orElseThrow(() -> new RuntimeException("Utilisateur introuvable avec ID: " + acceuil.getId()));
-                acceuil.setUser(user);
-                acceuil.setId(user.getId());
-            } else {
-                return ResponseEntity.badRequest().body("L'ID de l'utilisateur est obligatoire");
+            Long id = payload.get("id") != null ? Long.valueOf(payload.get("id").toString()) : null;
+            String nom = (String) payload.get("nom");
+            String prenom = (String) payload.get("prenom");
+            
+            if (id == null) return ResponseEntity.badRequest().body("ID manquant");
+
+            // Résolution hopital_id
+            Long hopitalId = null;
+            if (payload.get("hopital") != null) {
+                java.util.Map<String, Object> hMap = (java.util.Map<String, Object>) payload.get("hopital");
+                if (hMap.get("id") != null) hopitalId = Long.valueOf(hMap.get("id").toString());
             }
 
-            if (acceuil.getHopital() != null && acceuil.getHopital().getId() != null) {
-                hopitalRepository.findById(acceuil.getHopital().getId())
-                        .ifPresent(acceuil::setHopital);
-            }
-            if (acceuil.getCreatedAt() == null) {
-                acceuil.setCreatedAt(java.time.LocalDateTime.now());
-            }
+            // INSERT NATIVE
+            jdbcTemplate.update(
+                "INSERT INTO acceuil (id, nom, prenom, created_at, hopital_id) VALUES (?, ?, ?, ?, ?)",
+                id, nom, prenom, java.time.LocalDateTime.now(), hopitalId
+            );
 
-            System.out.println("DEBUG: Sauvegarde finale de l'agent d'accueil...");
-            Acceuil saved = acceuilRepository.save(acceuil);
-            return ResponseEntity.ok(saved);
+            System.out.println("DEBUG: Insert SQL réussi pour Accueil ID=" + id);
+            return ResponseEntity.ok().body("{\"id\": " + id + ", \"status\": \"success\"}");
         } catch (Exception e) {
-            System.err.println("ERROR during accueil creation: " + e.getMessage());
-            e.printStackTrace();
-            return ResponseEntity.status(500).body("Erreur interne : " + e.getMessage());
+            System.err.println("SQL ERROR: " + e.getMessage());
+            return ResponseEntity.status(500).body("Erreur SQL : " + e.getMessage());
         }
     }
 }

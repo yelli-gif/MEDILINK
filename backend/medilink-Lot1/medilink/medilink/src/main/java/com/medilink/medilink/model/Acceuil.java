@@ -9,18 +9,19 @@ import lombok.*;
 @Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Acceuil {
 
     @Id
     private Long id; // Cet ID est partagé avec la table Users
-
-    private String nom;
-    private String prenom;
-
+ 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id", insertable = false, updatable = false)
     @JsonIgnore // Évite la boucle infinie avec Users
     private Users user; // Lien avec le compte utilisateur (Socle)
+
+    private String nom;
+    private String prenom;
 
     @Column(name = "created_at", nullable = true, updatable = false)
     private java.time.LocalDateTime createdAt;
@@ -36,4 +37,8 @@ public class Acceuil {
     @JoinColumn(name = "hopital_id") // C'est ici qu'on lie à l'hôpital et non au service
     @JsonIgnore // Hopital contient des géométries non sérialisables
     private Hopital hopital;
+
+    public Long getId() {
+        return user != null ? user.getId() : null;
+    }
 }

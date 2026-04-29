@@ -28,6 +28,6 @@ public class Users {
 
     @PrePersist
     protected void onCreate() {
-        createdAt = java.time.LocalDateTime.now();
+        this.createdAt = java.time.LocalDateTime.now();
     }
 }

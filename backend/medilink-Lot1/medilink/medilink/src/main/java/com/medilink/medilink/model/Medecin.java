@@ -10,10 +10,16 @@ import java.time.LocalDateTime;
 @Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Medecin {
 
     @Id
     private Long id; // ID partagé avec la table Users
+ 
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id", insertable = false, updatable = false)
+    @JsonIgnore // Évite la boucle infinie avec Users
+    private Users user;
 
     private String nom;
     private String prenom;
@@ -28,12 +34,12 @@ public class Medecin {
         }
     }
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id", insertable = false, updatable = false)
-    @JsonIgnore // Évite la boucle infinie avec Users
-    private Users user;
-
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "service_id") // Relation avec la table service
     private Service service;
+
+    // Helper pour obtenir l'ID si besoin (pour compatibilité)
+    public Long getId() {
+        return user != null ? user.getId() : null;
+    }
 }

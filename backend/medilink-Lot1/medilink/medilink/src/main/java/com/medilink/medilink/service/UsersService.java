@@ -68,9 +68,10 @@ public class UsersService {
             System.out.println("DEBUG: Inscription réussie pour l'ID : " + savedUser.getId());
             return savedUser;
         } catch (Exception e) {
-            System.err.println("CRITICAL ERROR during registration: " + e.getMessage());
+            String detailedError = e.getMessage() + (e.getCause() != null ? " | Cause: " + e.getCause().getMessage() : "");
+            System.err.println("CRITICAL ERROR during registration: " + detailedError);
             e.printStackTrace();
-            throw new RuntimeException("Erreur lors de l'inscription : " + e.getMessage());
+            throw new RuntimeException("Erreur lors de l'inscription : " + detailedError);
         }
     }
 
