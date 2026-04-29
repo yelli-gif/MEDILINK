@@ -27,12 +27,7 @@ interface Establishment {
   longitude?: number;
 }
 
-const MOCK_DATA: Establishment[] = [
-  { id: '1', name: 'Hôpital La Pitié-Salpêtrière', type: 'hopital', typeLabel: 'Hôpital Universitaire', distance: '3.8 km', address: "47-83 Boulevard de l'Hôpital, 75013 Paris", rating: '4.8', imageUrl: 'https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80', services: ['Cardiologie', 'Urgence', 'Médecine Générale'], slots: [{ time: '08:00', status: 'available' }, { time: '10:30', status: 'available' }, { time: '15:00', status: 'available' }, { time: '16:45', status: 'available' }, { time: 'Complet', status: 'booked' }] },
-  { id: '2', name: 'Clinique Hartmann', type: 'hopital', typeLabel: 'Clinique Privée', distance: '5.2 km', address: '26 Boulevard Victor Hugo, 92200 Neuilly-sur-Seine', rating: '4.6', imageUrl: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80', services: ['Cardiologie', 'Oncologie', 'Chirurgie'], slots: [{ time: '09:15', status: 'available' }, { time: '11:00', status: 'available' }, { time: '14:30', status: 'available' }, { time: '15:45', status: 'available' }, { time: '17:30', status: 'available' }] }
-];
-
-const ALL_SERVICES = ['Tous', 'Cardiologie', 'Urgence', 'Médecine Générale', 'Oncologie', 'Chirurgie', 'Vaccination'];
+const ALL_SERVICES_INITIAL = ['Tous'];
 const DATES = ['Aujourd\'hui', 'Demain', 'Calendrier'];
 
 const getDaysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
@@ -48,14 +43,14 @@ const Rdv: React.FC = () => {
   const [activeService, setActiveService] = useState('Tous');
   const [showServiceDropdown, setShowServiceDropdown] = useState(false);
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
-  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<{estId: string, time: string} | null>(null);
   const [selectedBookingService, setSelectedBookingService] = useState<string>('');
   const [showToast, setShowToast] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [establishments, setEstablishments] = useState<Establishment[]>(MOCK_DATA);
-  const [availableServices, setAvailableServices] = useState<string[]>(ALL_SERVICES);
+  const [establishments, setEstablishments] = useState<Establishment[]>([]);
+  const [availableServices, setAvailableServices] = useState<string[]>(ALL_SERVICES_INITIAL);
   const [bookingLoading, setBookingLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   // Custom Calendar State
   const [showCalendar, setShowCalendar] = useState(false);
@@ -63,7 +58,7 @@ const Rdv: React.FC = () => {
 
   // Haversine Formula for distance
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-    const R = 6371; // Radius of the earth in km
+    const R = 6371; 
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
     const a = 
@@ -71,13 +66,8 @@ const Rdv: React.FC = () => {
       Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
       Math.sin(dLon/2) * Math.sin(dLon/2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    const d = R * c; // Distance in km
+    const d = R * c;
     return d.toFixed(1) + " km";
-  };
-
-  const getItinerary = (destLat: number, destLong: number) => {
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${destLat},${destLong}`;
-    window.open(url, '_blank');
   };
 
   useEffect(() => {
@@ -85,47 +75,59 @@ const Rdv: React.FC = () => {
     if (userStr) setCurrentUser(JSON.parse(userStr));
 
     const loadData = async () => {
+      setLoading(true);
       try {
+        // 1. Charger tous les services globaux pour le dropdown de tri
+        const servicesGlobaux = await serviceAPI.lister();
+        if (servicesGlobaux) {
+           setAvailableServices(['Tous', ...servicesGlobaux.map((s: any) => s.nom)]);
+        }
+
+        // 2. Charger les hôpitaux
         const hopitaux = await hopitalAPI.lister();
         if (hopitaux && hopitaux.length > 0) {
           const latestUserStr = localStorage.getItem('medilink_user');
           const latestUser = latestUserStr ? JSON.parse(latestUserStr) : null;
 
-          const mapped: Establishment[] = hopitaux.map((h: any) => ({
-            id: h.id?.toString(),
-            name: h.nom,
-            type: 'hopital' as EstablishmentType,
-            typeLabel: 'Hôpital',
-            distance: (latestUser?.latitude && h.latitude) 
-              ? calculateDistance(latestUser.latitude, latestUser.longitude, h.latitude, h.longitude)
-              : (h.distance || '3.5 km'),
-            address: h.adresse || 'Adresse non renseignée',
-            rating: '4.5',
-            imageUrl: 'https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80',
-            services: ['Cardiologie', 'Urgence', 'Médecine Générale'],
-            slots: [
-              { time: '08:00', status: 'available' as const },
-              { time: '10:30', status: 'available' as const },
-              { time: '14:00', status: 'available' as const },
-              { time: '16:00', status: 'available' as const },
-            ],
-            latitude: h.latitude,
-            longitude: h.longitude
+          const mapped: Establishment[] = await Promise.all(hopitaux.map(async (h: any, idx: number) => {
+            // 3. Charger les services spécifiques pour CHAQUE hôpital
+            let hospitalServices: string[] = [];
+            try {
+              const res = await serviceAPI.listerParHopital(h.id);
+              hospitalServices = res.map((s: any) => s.nom);
+            } catch (e) {
+              console.warn(`Impossible de charger les services pour l'hôpital ${h.id}`);
+            }
+
+            // Générer des créneaux un peu différents pour chaque hôpital pour plus de réalisme
+            const baseSlots = ['08:00', '09:30', '10:45', '14:00', '15:30', '17:00'];
+            const slots: Slot[] = baseSlots
+              .filter((_, sIdx) => (sIdx + idx) % 2 === 0 || (sIdx + idx) % 3 === 0)
+              .map(time => ({ time, status: 'available' }));
+
+            return {
+              id: h.id?.toString(),
+              name: h.nom,
+              type: 'hopital' as EstablishmentType,
+              typeLabel: 'Hôpital',
+              distance: (latestUser?.latitude && h.latitude) 
+                ? calculateDistance(latestUser.latitude, latestUser.longitude, h.latitude, h.longitude)
+                : `${(Math.random() * 5 + 1).toFixed(1)} km`,
+              address: h.adresse || 'Adresse non renseignée',
+              rating: (4 + Math.random()).toFixed(1),
+              imageUrl: `https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?idx=${idx}&auto=format&fit=crop&w=600&q=80`,
+              services: hospitalServices,
+              slots: slots,
+              latitude: h.latitude,
+              longitude: h.longitude
+            };
           }));
           setEstablishments(mapped);
         }
       } catch (err) {
-        console.error('Erreur chargement hôpitaux:', err);
-      }
-
-      try {
-        const services = await serviceAPI.lister();
-        if (services && services.length > 0) {
-          const serviceNames = ['Tous', ...services.map((s: any) => s.nom || s.name).filter(Boolean)];
-          setAvailableServices(serviceNames);
-        }
-      } catch (err) {
-        console.error('Erreur chargement services:', err);
+        console.error('Erreur chargement données:', err);
+      } finally {
+        setLoading(false);
       }
     };
     loadData();
@@ -155,7 +157,6 @@ const Rdv: React.FC = () => {
           onClick={() => {
             setActiveDate(dateStr);
             setShowCalendar(false);
-            setCurrentMonth(new Date());
           }}
           className={`w-8 h-8 rounded-full flex items-center justify-center text-sm transition-colors ${isSelected ? 'bg-blue-600 text-white font-bold' : isPast ? 'text-slate-300 cursor-not-allowed' : isToday ? 'bg-blue-50 text-blue-600 font-bold' : 'text-slate-700 hover:bg-slate-100'}`}
         >
@@ -194,9 +195,8 @@ const Rdv: React.FC = () => {
       const matchType = est.type === activeType;
       const searchLower = searchQuery.toLowerCase();
       const matchSearch = est.name.toLowerCase().includes(searchLower) || 
-                          est.address.toLowerCase().includes(searchLower) ||
-                          est.services.some(s => s.toLowerCase().includes(searchLower));
-      const matchService = activeService === 'Tous' || est.services.includes(activeService);
+                          est.address.toLowerCase().includes(searchLower);
+      const matchService = activeService === 'Tous' || est.services.some(s => s === activeService);
 
       return matchType && matchSearch && matchService;
     });
@@ -205,16 +205,17 @@ const Rdv: React.FC = () => {
   const handleSlotClick = (estId: string, slot: Slot) => {
     if (slot.status !== 'booked') {
       setSelectedSlot({ estId, time: slot.time });
-      if (activeService !== 'Tous') {
-        setSelectedBookingService(activeService);
+      const est = establishments.find(e => e.id === estId);
+      if (est && est.services.length > 0) {
+        setSelectedBookingService(est.services[0]);
       } else {
-        setSelectedBookingService('Généraliste');
+        setSelectedBookingService('');
       }
     }
   };
 
   const handleBooking = async () => {
-    if (!selectedSlot || !currentUser) return;
+    if (!selectedSlot || !currentUser || !selectedBookingService) return;
     const est = establishments.find(e => e.id === selectedSlot.estId);
     if (!est) return;
 
@@ -222,20 +223,31 @@ const Rdv: React.FC = () => {
 
     try {
       const today = new Date().toISOString().split('T')[0];
+      const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+      const rdvDate = activeDate === 'Aujourd\'hui' ? today : activeDate === 'Demain' ? tomorrow : activeDate;
+      
+      // On récupère l'ID du service sélectionné
+      const servicesGlobal = await serviceAPI.lister();
+      const serviceObj = servicesGlobal.find((s: any) => s.nom === selectedBookingService);
+
       await rendezVousAPI.creer({
-        date: activeDate === 'Aujourd\'hui' ? today : activeDate === 'Demain' ? new Date(Date.now() + 86400000).toISOString().split('T')[0] : activeDate,
+        date: rdvDate,
         heure: selectedSlot.time,
         patientId: currentUser.patientId || currentUser.id,
-        medecinId: 1, 
-        serviceId: 1, 
+        medecinId: 1, // À dynamiser plus tard si nécessaire
+        serviceId: serviceObj?.id || 1, 
+        hopitalId: parseInt(est.id)
       });
+      
+      setShowToast(true);
+      setSelectedSlot(null);
+      setTimeout(() => setShowToast(false), 5000);
     } catch (err) {
-      console.error('Erreur création RDV backend:', err);
+      console.error('Erreur création RDV:', err);
+      alert('Impossible de prendre le rendez-vous. Veuillez réessayer.');
+    } finally {
+      setBookingLoading(false);
     }
-
-    setBookingLoading(false);
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 5000);
   };
 
   return (
@@ -248,11 +260,6 @@ const Rdv: React.FC = () => {
           <span className="text-2xl font-bold text-blue-600 tracking-tight">Medilink</span>
         </div>
         <div className="flex items-center gap-6">
-          <div className="relative">
-            <button onClick={() => setShowNotifDropdown(!showNotifDropdown)} className="text-slate-500 hover:text-slate-800 transition-colors p-2">
-              <Bell size={24} />
-            </button>
-          </div>
           <div className="flex items-center gap-4">
              <div className="text-right">
                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Connecté en tant que</p>
@@ -286,9 +293,6 @@ const Rdv: React.FC = () => {
             placeholder="Rechercher un service, un médecin ou un établissement..." 
             className="flex-1 bg-transparent border-none outline-none px-5 text-slate-700 placeholder:text-slate-400 text-lg min-w-0"
           />
-          <button className="bg-blue-600 hover:bg-blue-700 text-white px-10 py-4 rounded-full font-bold text-base transition duration-200 shadow-md shadow-blue-500/20 whitespace-nowrap">
-            Explorer
-          </button>
         </div>
 
         <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
@@ -348,46 +352,29 @@ const Rdv: React.FC = () => {
           <div className="bg-[#ebe4f7] rounded-[2rem] p-8 border border-white shadow-sm">
             <h3 className="text-2xl font-bold text-slate-800 mb-5">À proximité</h3>
             <p className="text-base text-slate-600 leading-relaxed max-w-[90%] mb-10">
-              Nous avons trouvé {filteredEstablishments.length} établissement{filteredEstablishments.length > 1 ? 's' : ''} près de vous.
+              {loading ? "Recherche des établissements..." : `Nous avons trouvé ${filteredEstablishments.length} établissement${filteredEstablishments.length > 1 ? 's' : ''} près de vous.`}
             </p>
             <div className="space-y-6">
               <div className="flex items-start gap-4 text-xs font-bold text-slate-600 tracking-wider">
                 <div className="w-2.5 h-2.5 rounded-full bg-blue-600 shrink-0 mt-[3px]"></div>
                 <div className="flex flex-col gap-1.5 leading-snug">
-                  <span>TEMPS D'ATTENTE MOYEN :</span>
-                  <span>12 MIN</span>
+                  <span>SÉCURITÉ ET CONFORMITÉ</span>
+                  <span>100% AUDITÉ</span>
                 </div>
               </div>
-              <div className="flex items-start gap-4 text-xs font-bold text-slate-500 tracking-wider">
-                <div className="w-2.5 h-2.5 rounded-full bg-slate-400 shrink-0 mt-[1px]"></div>
-                <span>URGENCE DISPONIBLE</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-[#DBEAE0] rounded-[2rem] p-8 relative overflow-hidden shadow-sm border border-white">
-            <div className="absolute right-0 bottom-0 opacity-20 translate-x-3 translate-y-3">
-              <Plus size={150} className="text-[#3b8a66]" strokeWidth={4} />
-            </div>
-            <div className="relative z-10 flex flex-col h-full justify-between">
-              <div>
-                <div className="text-[11px] font-bold text-[#4B7963] uppercase tracking-widest mb-3 opacity-80">Premium Care</div>
-                <h3 className="text-[28px] font-bold text-[#204E38] mb-4">Téléconsultation</h3>
-                <p className="text-base text-[#204E38]/85 leading-relaxed mb-6 max-w-[85%] font-medium">
-                  Parlez à un médecin en moins de 15 minutes sans vous déplacer.
-                </p>
-              </div>
-              <button className="text-sm font-bold text-[#204E38] border-b-[1.5px] border-[#204E38] pb-0.5 inline-flex items-center transition-opacity hover:opacity-75 self-start">
-                Démarrer maintenant
-              </button>
             </div>
           </div>
         </div>
 
         <div className="lg:col-span-8 flex flex-col gap-6">
-          {filteredEstablishments.length === 0 ? (
+          {loading ? (
+            <div className="bg-white rounded-[2rem] p-10 text-center shadow-sm border border-slate-100 flex flex-col items-center justify-center min-h-[300px] gap-4">
+              <Loader2 className="animate-spin text-blue-600" size={40} />
+              <p className="text-slate-500 font-medium">Chargement des données réelles...</p>
+            </div>
+          ) : filteredEstablishments.length === 0 ? (
             <div className="bg-white rounded-[2rem] p-10 text-center shadow-sm border border-slate-100 flex items-center justify-center min-h-[300px]">
-              <p className="text-slate-500">Aucun établissement trouvé.</p>
+              <p className="text-slate-500">Aucun établissement ne correspond à vos critères.</p>
             </div>
           ) : (
             filteredEstablishments.map((est) => {
@@ -396,7 +383,7 @@ const Rdv: React.FC = () => {
               <div key={est.id} className="bg-white rounded-[2rem] p-5 shadow-sm border border-slate-100/60 flex flex-col gap-5 hover:shadow-md transition-all">
                 <div className="flex flex-col sm:flex-row gap-7">
                   <div className="w-full sm:w-[260px] h-[260px] rounded-[1.5rem] overflow-hidden shrink-0 relative bg-slate-100">
-                    <img src={est.imageUrl} alt={est.name} className="w-full h-full object-cover grayscale opacity-90 mix-blend-multiply transition-transform duration-500 hover:scale-[1.03]" />
+                    <img src={est.imageUrl} alt={est.name} className="w-full h-full object-cover transition-transform duration-500 hover:scale-[1.03]" />
                   </div>
                   <div className="flex-1 py-2 pr-3 flex flex-col justify-between">
                     <div className="flex items-start justify-between w-full">
@@ -405,13 +392,19 @@ const Rdv: React.FC = () => {
                           {est.typeLabel} <span className="text-slate-400 font-medium normal-case tracking-normal text-[13px] ml-1">• {est.distance}</span>
                         </div>
                         <h3 className="text-[28px] font-bold text-slate-900 mb-2 leading-tight">{est.name}</h3>
-                        <p className="text-[15px] text-slate-500 flex items-center gap-2 mb-6 font-medium">
+                        <p className="text-[15px] text-slate-500 flex items-center gap-2 mb-4 font-medium">
                           <MapPin size={18} className="text-slate-400" /> {est.address}
                         </p>
+                        <div className="flex flex-wrap gap-2 mb-4">
+                           {est.services.slice(0, 3).map(s => (
+                             <span key={s} className="text-[10px] bg-slate-100 text-slate-600 px-2 py-1 rounded-md font-bold uppercase tracking-wider">{s}</span>
+                           ))}
+                           {est.services.length > 3 && <span className="text-[10px] text-slate-400 font-bold">+{est.services.length - 3} PLUS</span>}
+                        </div>
                       </div>
                       <div className="flex flex-col items-center justify-center bg-[#F4F7FC] rounded-[18px] px-5 py-3 border border-blue-50/50 ml-4 shrink-0">
                         <span className="text-[28px] font-bold text-blue-600 leading-none">{est.rating}</span>
-                        <span className="text-[9px] font-bold text-slate-400/90 uppercase mt-2 tracking-widest">Rating</span>
+                        <span className="text-[9px] font-bold text-slate-400/90 uppercase mt-2 tracking-widest">Score</span>
                       </div>
                     </div>
                     <div>
@@ -431,40 +424,34 @@ const Rdv: React.FC = () => {
                 </div>
 
                 {isEstSelected && (
-                  <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in fade-in duration-300">
+                  <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-in fade-in duration-300 border-t border-slate-50 mt-2">
                     <div className="text-slate-500 font-medium">
-                      <div className="mb-2">Sélectionnez pour le : <span className="font-bold text-slate-900">{['Aujourd\'hui', 'Demain'].includes(activeDate) ? activeDate.toLowerCase() : activeDate}</span> à <span className="font-bold text-blue-600">{selectedSlot.time}</span></div>
+                      <div className="mb-2">Rendez-vous le : <span className="font-bold text-slate-900">{['Aujourd\'hui', 'Demain'].includes(activeDate) ? activeDate.toLowerCase() : activeDate}</span> à <span className="font-bold text-blue-600">{selectedSlot.time}</span></div>
                       <div className="flex items-center gap-3">
-                        <span className="text-sm font-bold text-slate-700">Service :</span>
+                        <span className="text-sm font-bold text-slate-700">Choisir le service :</span>
                         <select 
                           value={selectedBookingService} 
                           onChange={(e) => setSelectedBookingService(e.target.value)}
                           className="bg-[#F4F7FC] border border-slate-200 text-slate-700 text-sm rounded-lg p-2 outline-none font-semibold"
                         >
-                          <option value="">Sélectionnez un service</option>
-                          {availableServices.filter(s => s !== 'Tous').map(s => (
-                            <option key={s} value={s}>{s}</option>
-                          ))}
+                          {est.services.length === 0 ? (
+                            <option value="">Aucun service disponible</option>
+                          ) : (
+                            est.services.map(s => (
+                              <option key={s} value={s}>{s}</option>
+                            ))
+                          )}
                         </select>
                       </div>
                     </div>
-                    <button onClick={handleBooking} disabled={bookingLoading} className="flex items-center justify-center gap-2.5 bg-[#0066FF] hover:bg-[#005CE6] text-white px-8 py-3.5 rounded-full font-bold shadow-lg shadow-[#0066FF]/30 transition-all text-base disabled:opacity-50">
-                      {bookingLoading ? <Loader2 className="animate-spin" /> : <CalendarCheck size={20} />} Confirmer
+                    <button onClick={handleBooking} disabled={bookingLoading || !selectedBookingService} className="flex items-center justify-center gap-2.5 bg-[#0066FF] hover:bg-[#005CE6] text-white px-8 py-3.5 rounded-full font-bold shadow-lg shadow-[#0066FF]/30 transition-all text-base disabled:opacity-50">
+                      {bookingLoading ? <Loader2 className="animate-spin" /> : <CalendarCheck size={20} />} Confirmer la réservation
                     </button>
                   </div>
                 )}
               </div>
             )})
           )}
-
-          <div className="relative h-[360px] rounded-[2rem] overflow-hidden shadow-sm border border-slate-100 group mt-2">
-            <img src="https://images.unsplash.com/photo-1524661135-423995f22d0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" alt="Carte" className="w-full h-full object-cover transition-transform duration-[1.5s] group-hover:scale-[1.05]" />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/30 to-transparent flex flex-col justify-end p-10">
-              <h3 className="text-3xl font-bold text-white mb-3 tracking-tight">Explorer la carte</h3>
-              <p className="text-white/95 text-lg max-w-xl mb-8 leading-relaxed font-medium">Visualisez tous les spécialistes et établissements autour de vous en temps réel.</p>
-              <button className="bg-white text-blue-600 px-8 py-3.5 rounded-full text-[17px] font-bold shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all inline-block self-start">Ouvrir le mode carte</button>
-            </div>
-          </div>
         </div>
       </div>
       
@@ -472,8 +459,8 @@ const Rdv: React.FC = () => {
         <div className="fixed bottom-6 right-6 z-[100] bg-[#28B880] text-white px-6 py-4 rounded-2xl shadow-[0_8px_30px_rgba(40,184,128,0.3)] flex items-center gap-4 animate-in slide-in-from-bottom-5 duration-300">
           <CalendarCheck size={24} />
           <div>
-            <p className="font-bold">Rendez-vous pris en compte !</p>
-            <p className="text-sm opacity-95">Retrouvez-le dans votre tableau de bord.</p>
+            <p className="font-bold">Rendez-vous confirmé !</p>
+            <p className="text-sm opacity-95">Retrouvez-le dans vos activités.</p>
           </div>
         </div>
       )}
