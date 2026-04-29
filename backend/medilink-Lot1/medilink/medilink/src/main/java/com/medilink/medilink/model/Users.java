@@ -22,4 +22,12 @@ public class Users {
 
     @Enumerated(EnumType.STRING)
     private Role role; // ADMIN, MEDECIN, ACCUEIL
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private java.time.LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = java.time.LocalDateTime.now();
+    }
 }

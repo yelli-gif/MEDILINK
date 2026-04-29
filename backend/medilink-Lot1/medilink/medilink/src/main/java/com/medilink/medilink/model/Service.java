@@ -16,6 +16,14 @@ public class Service {
 
     private String nom;
 
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private java.time.LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = java.time.LocalDateTime.now();
+    }
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "hopital_id")
     // On garde l'hôpital visible pour valider l'étape 3

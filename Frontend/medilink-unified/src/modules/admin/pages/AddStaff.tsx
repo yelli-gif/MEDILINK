@@ -21,36 +21,25 @@ export default function AddStaff() {
   const [department, setDepartment] = useState('');
   const [availableServices, setAvailableServices] = useState<string[]>([]);
   const [servicesLoading, setServicesLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadServices = async () => {
       try {
-        const configRaw = localStorage.getItem('sanctuary_hospital_config');
+        const configRaw = 
+          localStorage.getItem('sanctuary_hospital_config') || 
+          localStorage.getItem('medilink_hospital') || 
+          localStorage.getItem('hospital_config');
         const config = configRaw ? JSON.parse(configRaw) : null;
-        const hopitalId = config?.id;
+        const hopitalId = config?.id || config?.hopitalId;
 
         const services = await serviceAPI.listerTous(hopitalId);
-        setAvailableServices(services.map(s => s.nom).filter(Boolean));
+        setAvailableServices(services.map((s: any) => s.nom || s.name).filter(Boolean));
       } catch (err) {
         console.error("Erreur chargement services:", err);
       } finally {
         setServicesLoading(false);
-      }
-    };
-    loadServices();
-  }, []);
-
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    const loadServices = async () => {
-      try {
-        const services = await serviceAPI.listerTous();
-        // On récupère uniquement les noms des services réels
-        const apiDepts = services.map((s: any) => s.nom || s.name).filter(Boolean);
-        setDepartments(apiDepts);
-      } catch (err) {
-        console.error("Erreur chargement services:", err);
       }
     };
     loadServices();
@@ -70,12 +59,22 @@ export default function AddStaff() {
     }
 
     setLoading(true);
+    setError(null);
 
     try {
       // 0. Récupérer l'ID de l'hôpital
-      const configRaw = localStorage.getItem('sanctuary_hospital_config');
+      const configRaw = 
+        localStorage.getItem('sanctuary_hospital_config') || 
+        localStorage.getItem('medilink_hospital') || 
+        localStorage.getItem('hospital_config');
       const config = configRaw ? JSON.parse(configRaw) : null;
-      const hopitalId = config?.id || 1;
+      const hopitalId = config?.id || config?.hopitalId;
+
+      if (!hopitalId) {
+        alert("Impossible de trouver l'ID de l'hôpital. Veuillez vous reconnecter.");
+        setLoading(false);
+        return;
+      }
 
       // 1. Register user in Lot 1 (port 8081)
       const savedUser = await authAPI.register({
@@ -120,7 +119,7 @@ export default function AddStaff() {
       navigate('/admin/staff');
     } catch (err: any) {
       console.error("Erreur ajout personnel:", err);
-      alert(err.message || "Erreur lors de l'ajout du personnel.");
+      setError(err.message || "Erreur lors de l'ajout du personnel.");
     } finally {
       setLoading(false);
     }
@@ -189,6 +188,12 @@ export default function AddStaff() {
                 )}
               </div>
             </div>
+
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-xs font-medium animate-in fade-in slide-in-from-top-2">
+                ⚠️ {error}
+              </div>
+            )}
 
             <button type="submit" disabled={loading} className="w-full bg-[#0B56FA] text-white font-bold py-4 rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/20 mt-4 disabled:opacity-50">
               {loading ? "Enregistrement..." : "Enregistrer le nouveau personnel"}

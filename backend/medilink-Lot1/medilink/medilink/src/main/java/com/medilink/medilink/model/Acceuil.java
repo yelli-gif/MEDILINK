@@ -23,6 +23,16 @@ public class Acceuil {
     @JsonIgnore // Évite la boucle infinie avec Users
     private Users user; // Lien avec le compte utilisateur (Socle)
 
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private java.time.LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        if (createdAt == null) {
+            createdAt = java.time.LocalDateTime.now();
+        }
+    }
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "hopital_id") // C'est ici qu'on lie à l'hôpital et non au service
     @JsonIgnore // Hopital contient des géométries non sérialisables
