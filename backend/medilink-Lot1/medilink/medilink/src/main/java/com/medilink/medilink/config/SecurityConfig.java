@@ -38,6 +38,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Routes publiques (pas besoin de token)
                 .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/hopitaux/ajouter").permitAll() // Permettre l'ajout initial sans token
                 .requestMatchers("/api/services", "/api/services/**").permitAll()
                 .requestMatchers("/api/medicaments", "/api/medicaments/**").permitAll()
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()

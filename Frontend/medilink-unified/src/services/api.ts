@@ -16,6 +16,7 @@ const API = {
 // Fonction utilitaire pour les appels API
 // ================================================================
 async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
+  console.log(`[API CALL] Fetching: ${url}`);
   const token = localStorage.getItem('medilink_token');
 
   const response = await fetch(url, {

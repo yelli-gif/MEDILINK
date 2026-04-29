@@ -113,19 +113,19 @@ export default function AddStaff() {
           <div className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-[13px] font-bold text-gray-900 mb-2">Prénom</label>
-                <input type="text" value={prenom} onChange={e => setPrenom(e.target.value)} className="w-full bg-[#F3F4F6] border-0 rounded-xl px-4 py-3 font-medium outline-none" placeholder="Julianne" />
+                <label className="block text-[13px] font-bold text-gray-900 mb-2">Prénom *</label>
+                <input type="text" required value={prenom} onChange={e => setPrenom(e.target.value)} className="w-full bg-[#F3F4F6] border-0 rounded-xl px-4 py-3 font-medium outline-none focus:ring-2 focus:ring-blue-500/20" placeholder="Julianne" />
               </div>
               <div>
-                <label className="block text-[13px] font-bold text-gray-900 mb-2">Nom</label>
-                <input type="text" value={nom} onChange={e => setNom(e.target.value)} className="w-full bg-[#F3F4F6] border-0 rounded-xl px-4 py-3 font-medium outline-none" placeholder="Sterling" />
+                <label className="block text-[13px] font-bold text-gray-900 mb-2">Nom *</label>
+                <input type="text" required value={nom} onChange={e => setNom(e.target.value)} className="w-full bg-[#F3F4F6] border-0 rounded-xl px-4 py-3 font-medium outline-none focus:ring-2 focus:ring-blue-500/20" placeholder="Sterling" />
               </div>
             </div>
 
             <div>
-              <label className="block text-[13px] font-bold text-gray-900 mb-2">Email Professionnel</label>
+              <label className="block text-[13px] font-bold text-gray-900 mb-2">Email Professionnel *</label>
               <div className="relative">
-                <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full bg-[#F3F4F6] border-0 rounded-xl pl-11 py-3 font-medium outline-none" placeholder="j.sterling@hopital.fr" />
+                <input type="email" required value={email} onChange={e => setEmail(e.target.value)} className="w-full bg-[#F3F4F6] border-0 rounded-xl pl-11 py-3 font-medium outline-none focus:ring-2 focus:ring-blue-500/20" placeholder="j.sterling@hopital.fr" />
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
               </div>
             </div>
@@ -140,15 +140,15 @@ export default function AddStaff() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-[13px] font-bold text-gray-900 mb-2">Rôle</label>
-                <select value={role} onChange={e => setRole(e.target.value)} className="w-full bg-[#F3F4F6] border-0 rounded-xl px-4 py-3 font-medium outline-none">
+                <label className="block text-[13px] font-bold text-gray-900 mb-2">Rôle *</label>
+                <select required value={role} onChange={e => setRole(e.target.value)} className="w-full bg-[#F3F4F6] border-0 rounded-xl px-4 py-3 font-medium outline-none focus:ring-2 focus:ring-blue-500/20">
                   <option value="">Sélectionner...</option>
                   {roles.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-[13px] font-bold text-gray-900 mb-2">Service d'affectation</label>
-                <select value={department} onChange={e => setDepartment(e.target.value)} className="w-full bg-[#F3F4F6] border-0 rounded-xl px-4 py-3 font-medium outline-none">
+                <label className="block text-[13px] font-bold text-gray-900 mb-2">Service d'affectation *</label>
+                <select required value={department} onChange={e => setDepartment(e.target.value)} className="w-full bg-[#F3F4F6] border-0 rounded-xl px-4 py-3 font-medium outline-none focus:ring-2 focus:ring-blue-500/20">
                   <option value="">Sélectionner...</option>
                   {departments.map(d => <option key={d} value={d}>{d}</option>)}
                 </select>

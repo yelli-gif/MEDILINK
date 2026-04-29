@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, User, Building2, ArrowRight, Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { ArrowLeft, User, Building2, ArrowRight, Mail, Lock, Eye, EyeOff, Loader2, Pill } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { authAPI } from '../../../services/api';
 
@@ -26,7 +26,7 @@ const Connexion: React.FC<ConnexionProps> = ({ mode = 'login' }) => {
   const btnText = isRegister ? "S'inscrire" : "Se connecter";
 
   const navigate = useNavigate();
-  const [view, setView] = useState<'selection' | 'patient-form' | 'etablissement-type'>('selection');
+  const [view, setView] = useState<'selection' | 'patient-form' | 'etablissement-choice'>('selection');
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -98,12 +98,12 @@ const Connexion: React.FC<ConnexionProps> = ({ mode = 'login' }) => {
 
   const handleEtablissementClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    if (isRegister) navigate('/admin/setup');
+    if (isRegister) setView('etablissement-choice');
     else setView('patient-form');
   };
 
   const handleBackClick = (e: React.MouseEvent) => {
-    if (view === 'patient-form' || view === 'etablissement-type') {
+    if (view === 'patient-form' || view === 'etablissement-choice') {
       e.preventDefault();
       setView('selection');
       setError('');
@@ -138,9 +138,29 @@ const Connexion: React.FC<ConnexionProps> = ({ mode = 'login' }) => {
               </button>
               <button onClick={handleEtablissementClick} className="bg-white rounded-[24px] p-10 flex flex-col items-start text-left transition-all hover:shadow-xl group border border-[#E1E6F0]">
                 <div className="w-14 h-14 rounded-2xl bg-[#F0F4FF] flex items-center justify-center mb-6"><Building2 size={26} className="text-[#0055FF]" /></div>
-                <h3 className="text-[22px] font-bold text-[#14152A] mb-3">Personnel / Admin</h3>
+                <h3 className="text-[22px] font-bold text-[#14152A] mb-3">Établissement</h3>
                 <p className="text-[#5A5C6B] text-[15px] mb-8">Poste de réception, Médecin ou Administrateur.</p>
                 <div className="flex items-center gap-2 text-[#0055FF] font-bold mt-auto">{btnText} <ArrowRight size={18} /></div>
+              </button>
+            </div>
+          </div>
+        ) : view === 'etablissement-choice' ? (
+          <div className="max-w-[1024px] w-full flex flex-col items-center">
+            <h1 className="text-[36px] md:text-[42px] font-bold text-center leading-tight tracking-tight mb-4 text-[#14152A]">
+              Établissement
+            </h1>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-[900px] mt-12">
+              <button onClick={() => navigate('/admin/setup')} className="bg-white rounded-[24px] p-10 flex flex-col items-start text-left transition-all hover:shadow-xl group border border-[#E1E6F0]">
+                <div className="w-14 h-14 rounded-2xl bg-[#F0F4FF] flex items-center justify-center mb-6"><Building2 size={26} className="text-[#0055FF]" /></div>
+                <h3 className="text-[22px] font-bold text-[#14152A] mb-3">Hôpital / Clinique</h3>
+                <p className="text-[#5A5C6B] text-[15px] mb-8">Gérez un centre hospitalier, les services et le personnel.</p>
+                <div className="flex items-center gap-2 text-[#0055FF] font-bold mt-auto">Créer un hôpital <ArrowRight size={18} /></div>
+              </button>
+              <button onClick={() => navigate('/pharmacie/creation')} className="bg-white rounded-[24px] p-10 flex flex-col items-start text-left transition-all hover:shadow-xl group border border-[#E1E6F0]">
+                <div className="w-14 h-14 rounded-2xl bg-[#F0F4FF] flex items-center justify-center mb-6"><Pill size={26} className="text-[#0055FF]" /></div>
+                <h3 className="text-[22px] font-bold text-[#14152A] mb-3">Pharmacie</h3>
+                <p className="text-[#5A5C6B] text-[15px] mb-8">Gérez une pharmacie, les stocks et les prescriptions.</p>
+                <div className="flex items-center gap-2 text-[#0055FF] font-bold mt-auto">Créer une pharmacie <ArrowRight size={18} /></div>
               </button>
             </div>
           </div>

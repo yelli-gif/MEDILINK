@@ -22,6 +22,8 @@ public class CorsConfig {
         // Ajout des origines autorisées via variable d'env et patterns par défaut
         List<String> origins = new java.util.ArrayList<>(Arrays.asList(allowedOrigins.split(",")));
         origins.add("http://localhost:*");
+        origins.add("http://127.0.0.1:*");
+        origins.add("http://[::1]:*"); // IPv6 localhost
         origins.add("https://*.vercel.app");
 
         configuration.setAllowedOriginPatterns(origins);

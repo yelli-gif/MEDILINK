@@ -120,29 +120,38 @@ const Inscription: React.FC = () => {
         <div className="space-y-5">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-[10px] font-bold text-[#14152A] uppercase tracking-widest mb-2">Prénom</label>
-              <input type="text" value={formData.prenom} onChange={e => setFormData({...formData, prenom: e.target.value})} className="w-full bg-[#F5F7FD] border-0 rounded-xl px-4 py-3 font-medium outline-none" placeholder="Jean" />
+              <label className="block text-[10px] font-bold text-[#14152A] uppercase tracking-widest mb-2">Prénom *</label>
+              <input type="text" required value={formData.prenom} onChange={e => setFormData({...formData, prenom: e.target.value})} className="w-full bg-[#F5F7FD] border-0 rounded-xl px-4 py-3 font-medium outline-none focus:ring-2 focus:ring-blue-500/20" placeholder="Jean" />
             </div>
             <div>
-              <label className="block text-[10px] font-bold text-[#14152A] uppercase tracking-widest mb-2">Nom</label>
-              <input type="text" value={formData.nom} onChange={e => setFormData({...formData, nom: e.target.value})} className="w-full bg-[#F5F7FD] border-0 rounded-xl px-4 py-3 font-medium outline-none" placeholder="Dupont" />
+              <label className="block text-[10px] font-bold text-[#14152A] uppercase tracking-widest mb-2">Nom *</label>
+              <input type="text" required value={formData.nom} onChange={e => setFormData({...formData, nom: e.target.value})} className="w-full bg-[#F5F7FD] border-0 rounded-xl px-4 py-3 font-medium outline-none focus:ring-2 focus:ring-blue-500/20" placeholder="Dupont" />
             </div>
           </div>
 
           <div>
-            <label className="block text-[10px] font-bold text-[#14152A] uppercase tracking-widest mb-2">Email</label>
-            <input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full bg-[#F5F7FD] border-0 rounded-xl px-4 py-3 font-medium outline-none" placeholder="jean.dupont@exemple.com" />
+            <label className="block text-[10px] font-bold text-[#14152A] uppercase tracking-widest mb-2">Email *</label>
+            <input type="email" required value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full bg-[#F5F7FD] border-0 rounded-xl px-4 py-3 font-medium outline-none focus:ring-2 focus:ring-blue-500/20" placeholder="jean.dupont@exemple.com" />
           </div>
 
           <div>
-            <label className="block text-[10px] font-bold text-[#14152A] uppercase tracking-widest mb-2">Mot de passe</label>
+            <label className="block text-[10px] font-bold text-[#14152A] uppercase tracking-widest mb-2">Mot de passe *</label>
             <div className="relative">
-              <input type={showPassword ? "text" : "password"} value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} className="w-full bg-[#F5F7FD] border-0 rounded-xl px-4 py-3 font-medium outline-none" placeholder="••••••••" />
+              <input type={showPassword ? "text" : "password"} required value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} className="w-full bg-[#F5F7FD] border-0 rounded-xl px-4 py-3 font-medium outline-none focus:ring-2 focus:ring-blue-500/20" placeholder="••••••••" />
               <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button>
             </div>
           </div>
 
-          <button onClick={() => setStep(2)} className="w-full bg-[#0055FF] text-white font-bold py-4 rounded-full transition-all hover:bg-[#0044CC] mt-6 shadow-lg shadow-blue-500/20">
+          <button 
+            onClick={() => {
+              if (!formData.prenom || !formData.nom || !formData.email || !formData.password) {
+                alert("Veuillez remplir tous les champs obligatoires (marqués par *).");
+                return;
+              }
+              setStep(2);
+            }} 
+            className="w-full bg-[#0055FF] text-white font-bold py-4 rounded-full transition-all hover:bg-[#0044CC] mt-6 shadow-lg shadow-blue-500/20"
+          >
             Continuer ➔
           </button>
         </div>
@@ -157,8 +166,8 @@ const Inscription: React.FC = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-[10px] font-bold text-[#14152A] uppercase tracking-widest mb-2">N° Sécurité Sociale</label>
-            <input type="text" value={formData.numeroSecuriteSociale} onChange={e => setFormData({...formData, numeroSecuriteSociale: e.target.value})} className="w-full bg-[#F5F7FD] border-0 rounded-xl px-4 py-3 font-medium outline-none" placeholder="1 85 05 75 001 001" />
+            <label className="block text-[10px] font-bold text-[#14152A] uppercase tracking-widest mb-2">N° Sécurité Sociale *</label>
+            <input type="text" required value={formData.numeroSecuriteSociale} onChange={e => setFormData({...formData, numeroSecuriteSociale: e.target.value})} className="w-full bg-[#F5F7FD] border-0 rounded-xl px-4 py-3 font-medium outline-none focus:ring-2 focus:ring-blue-500/20" placeholder="1 85 05 75 001 001" />
           </div>
           <div>
             <label className="block text-[10px] font-bold text-[#14152A] uppercase tracking-widest mb-2">Téléphone</label>
@@ -176,8 +185,8 @@ const Inscription: React.FC = () => {
             </select>
           </div>
           <div>
-            <label className="block text-[10px] font-bold text-[#14152A] uppercase tracking-widest mb-2">Date de naissance</label>
-            <input type="date" value={formData.dob} onChange={e => setFormData({...formData, dob: e.target.value})} className="w-full bg-[#F5F7FD] border-0 rounded-xl px-4 py-3 font-medium outline-none" />
+            <label className="block text-[10px] font-bold text-[#14152A] uppercase tracking-widest mb-2">Date de naissance *</label>
+            <input type="date" required value={formData.dob} onChange={e => setFormData({...formData, dob: e.target.value})} className="w-full bg-[#F5F7FD] border-0 rounded-xl px-4 py-3 font-medium outline-none focus:ring-2 focus:ring-blue-500/20" />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>

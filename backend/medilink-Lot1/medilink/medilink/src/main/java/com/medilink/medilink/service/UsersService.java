@@ -36,18 +36,38 @@ public class UsersService {
 
 
     public Users inscrire(Users utilisateur) {
-        // On hache le mot de passe pour la sécurité
-        utilisateur.setMotDePasse(passwordEncoder.encode(utilisateur.getMotDePasse()));
+        try {
+            System.out.println("DEBUG: Tentative d'inscription pour : " + utilisateur.getEmail());
+            
+            // Vérification si l'email existe déjà
+            if (usersRepository.findByEmail(utilisateur.getEmail()).isPresent()) {
+                throw new RuntimeException("Cet email est déjà utilisé. Veuillez en choisir un autre.");
+            }
 
-        // Sécurité : Si aucun rôle n'est fourni (ex: via Inscription Patient), on met PATIENT par défaut
-        if (utilisateur.getRole() == null) {
-            System.out.println("DEBUG: Role was null, setting to PATIENT");
-            utilisateur.setRole(com.medilink.medilink.model.Role.PATIENT);
-        } else {
-            System.out.println("DEBUG: Role provided: " + utilisateur.getRole());
+            if (utilisateur.getMotDePasse() == null) {
+                throw new RuntimeException("Le mot de passe ne peut pas être nul");
+            }
+
+            // On hache le mot de passe pour la sécurité
+            utilisateur.setMotDePasse(passwordEncoder.encode(utilisateur.getMotDePasse()));
+
+            // Sécurité : Si aucun rôle n'est fourni, on met PATIENT par défaut
+            if (utilisateur.getRole() == null) {
+                System.out.println("DEBUG: Role was null, setting to PATIENT");
+                utilisateur.setRole(com.medilink.medilink.model.Role.PATIENT);
+            } else {
+                System.out.println("DEBUG: Role provided: " + utilisateur.getRole());
+            }
+
+            System.out.println("DEBUG: Enregistrement en base de données...");
+            Users savedUser = usersRepository.save(utilisateur);
+            System.out.println("DEBUG: Inscription réussie pour l'ID : " + savedUser.getId());
+            return savedUser;
+        } catch (Exception e) {
+            System.err.println("CRITICAL ERROR during registration: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Erreur lors de l'inscription : " + e.getMessage());
         }
-
-        return usersRepository.save(utilisateur);
     }
 
     public boolean verifierIdentifiants(String email, String mdpClair) {
