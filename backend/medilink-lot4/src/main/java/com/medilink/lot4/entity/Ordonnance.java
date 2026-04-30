@@ -33,8 +33,20 @@ public class Ordonnance {
     @Column(name = "patient_id", nullable = false)
     private Long patientId;
 
-    @Column(name = "service_id", nullable = false)  // ✅ Le champ critique
+    @Column(name = "service_id", nullable = true)
     private Long serviceId;
+
+    @Column(name = "medecin_nom")
+    private String medecinNom;
+
+    @Column(name = "patient_nom")
+    private String patientNom;
+
+    @Column(name = "service_nom")
+    private String serviceNom;
+
+    @Column(columnDefinition = "TEXT")
+    private String contenu;
 
     @OneToMany(mappedBy = "ordonnance", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @com.fasterxml.jackson.annotation.JsonManagedReference // ligne pour eviter le referencement recursifs

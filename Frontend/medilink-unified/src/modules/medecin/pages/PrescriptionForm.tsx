@@ -72,12 +72,18 @@ const PrescriptionForm: React.FC = () => {
       const user = userStr ? JSON.parse(userStr) : null;
       const medecinId = user?.medecinId || 1;
 
+      const selectedPatient = patients.find(p => p.id.toString() === selectedPatientId);
+      const patientNom = selectedPatient ? `${selectedPatient.prenom} ${selectedPatient.nom}` : "Inconnu";
+
       // Lot 4 - Consultation API (port 8084)
       await consultationAPI.creerOrdonnance({
         patientId: parseInt(selectedPatientId),
-        medecinId: parseInt(medecinId),
-        dateOrdonnance: new Date().toISOString().split('T')[0],
-        contenu: medications.map(m => `${m.medicamentName} (${m.quantite}, ${m.frequence}, ${m.duree}) - ${m.instructions}`).join(' | ')
+        medecinId: parseInt(medecinId.toString()),
+        dateDebutTraitement: new Date().toISOString().replace('Z', ''),
+        contenu: medications.map(m => `${m.medicamentName} (${m.quantite}, ${m.frequence}, ${m.duree}) - ${m.instructions}`).join(' | '),
+        patientNom: patientNom,
+        medecinNom: user?.nom || "Dr. Medilink",
+        serviceNom: user?.serviceNom || "Service de consultation"
       });
 
       alert("Ordonnance signée et transmise avec succès !");

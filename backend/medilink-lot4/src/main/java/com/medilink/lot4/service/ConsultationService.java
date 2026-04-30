@@ -48,11 +48,20 @@ public class ConsultationService {
         ordonnance.setPatientId(dto.getPatientId());
         ordonnance.setServiceId(dto.getServiceId());
         ordonnance.setDateDebutTraitement(dto.getDateDebutTraitement());
+        ordonnance.setContenu(dto.getContenu());
+        ordonnance.setMedecinNom(dto.getMedecinNom());
+        ordonnance.setPatientNom(dto.getPatientNom());
+        ordonnance.setServiceNom(dto.getServiceNom());
 
         // Logique métier UML : Statut initial obligatoire
         ordonnance.setStatutOrdonnance(StatutOrdonnance.EN_ATTENTE_PHARMACIE);
 
-        return ordonnanceRepository.save(ordonnance);
+        try {
+            return ordonnanceRepository.save(ordonnance);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     /**

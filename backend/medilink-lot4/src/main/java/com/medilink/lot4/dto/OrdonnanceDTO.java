@@ -9,4 +9,8 @@ public class OrdonnanceDTO {
     private Long patientId;
     private Long serviceId;
     private LocalDateTime dateDebutTraitement;
+    private String contenu;
+    private String medecinNom;
+    private String patientNom;
+    private String serviceNom;
 }
