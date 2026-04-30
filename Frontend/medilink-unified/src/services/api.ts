@@ -174,6 +174,15 @@ export const medicamentAPI = {
 
   supprimer: (id: number) =>
     apiFetch<void>(`${API.LOT1}/api/medicaments/${id}`, { method: 'DELETE' }),
+
+  rechercher: (q: string) =>
+    apiFetch<any[]>(`${API.LOT4}/api/medicaments/search?q=${encodeURIComponent(q)}`),
+
+  ajouterCatalogue: (data: any) =>
+    apiFetch<any>(`${API.LOT4}/api/medicaments`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
 };
 
 // ================================================================

@@ -152,7 +152,7 @@ export default function DetailFile() {
           const filtered = allRdv.filter((r: any) => 
             r.service?.id === Number(serviceId) && 
             r.date === today &&
-            (r.status === "ACCEPTE" || r.status === "ARRIVE" || r.status === "EN_ATTENTE" || r.statut === "ACCEPTE" || r.statut === "ARRIVE")
+            (r.status === "ACCEPTE" || r.status === "ARRIVE" || r.status === "EN_ATTENTE" || r.statut === "ACCEPTE" || r.statut === "ARRIVE" || r.statut === "EN_ATTENTE")
           );
           setPatients(filtered);
         }

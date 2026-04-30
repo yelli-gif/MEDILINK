@@ -113,7 +113,7 @@ export default function WaitingQueues() {
 
       const mapped: Department[] = services.map((s: any, idx: number) => {
         const count = allRdv.filter((r: any) => 
-          r.service?.id === s.id && 
+          r.service?.id === Number(s.id) && 
           r.date === today &&
           (r.statut === 'EN_ATTENTE' || r.statut === 'ARRIVE')
         ).length

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import MedecinLayout from '../components/MedecinLayout';
 import { Plus, Trash2, ShieldCheck, HelpCircle, PenTool, MessageSquare, ChevronDown, FileText, Loader2 } from 'lucide-react';
-import { consultationAPI, patientAPI } from '../../../services/api';
+import { consultationAPI, patientAPI, medicamentAPI } from '../../../services/api';
 
 interface LigneOrdonnance {
   id: number;
@@ -20,10 +20,17 @@ const PrescriptionForm: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
 
   const [newMedName, setNewMedName] = useState('');
+  const [medSearchTerm, setMedSearchTerm] = useState('');
+  const [isMedDropdownOpen, setIsMedDropdownOpen] = useState(false);
   const [newMedQuantite, setNewMedQuantite] = useState('');
   const [newMedFrequence, setNewMedFrequence] = useState('');
   const [newMedDuree, setNewMedDuree] = useState('');
   const [newMedInstructions, setNewMedInstructions] = useState('');
+
+  // Catalog State
+  const [catalogMeds, setCatalogMeds] = useState<any[]>([]);
+  const [showAddMedModal, setShowAddMedModal] = useState(false);
+  const [newCatalogMed, setNewCatalogMed] = useState({ nom: '', forme: '', prix: 0 });
 
   useEffect(() => {
     const loadPatients = async () => {
@@ -39,7 +46,17 @@ const PrescriptionForm: React.FC = () => {
         setLoading(false);
       }
     };
+    const loadMedicaments = async () => {
+      try {
+        const meds = await medicamentAPI.rechercher('');
+        setCatalogMeds(meds);
+      } catch (err) {
+        console.error("Erreur chargement médicaments:", err);
+      }
+    };
+
     loadPatients();
+    loadMedicaments();
   }, []);
 
   const handleSignAndSubmit = async () => {
@@ -84,6 +101,7 @@ const PrescriptionForm: React.FC = () => {
       instructions: newMedInstructions,
     };
     setMedications([...medications, newItem]);
+    setMedSearchTerm('');
     setNewMedName('');
     setNewMedQuantite('');
     setNewMedFrequence('');
@@ -93,6 +111,22 @@ const PrescriptionForm: React.FC = () => {
 
   const removeMedication = (id: number) => {
     setMedications(medications.filter(m => m.id !== id));
+  };
+
+  const handleCreateCatalogMed = async () => {
+    if (!newCatalogMed.nom) return;
+    try {
+      const saved = await medicamentAPI.ajouterCatalogue(newCatalogMed);
+      setCatalogMeds([...catalogMeds, saved]);
+      setShowAddMedModal(false);
+      setNewMedName(saved.nom);
+      setMedSearchTerm(saved.nom);
+      setNewCatalogMed({ nom: '', forme: '', prix: 0 });
+      alert("Médicament ajouté au catalogue avec succès !");
+    } catch (err) {
+      console.error("Erreur lors de l'ajout au catalogue:", err);
+      alert("Erreur lors de l'ajout du médicament au catalogue.");
+    }
   };
 
   return (
@@ -136,15 +170,74 @@ const PrescriptionForm: React.FC = () => {
             <h3 className="text-[20px] font-bold text-[#14152A] mb-8">Ajouter un Médicament</h3>
 
             <div className="space-y-6">
-              <div className="flex flex-col gap-2">
-                <label className="text-[13px] font-bold text-[#14152A] ml-1">MÉDICAMENT</label>
-                <input
-                  type="text"
-                  value={newMedName}
-                  onChange={(e) => setNewMedName(e.target.value)}
-                  placeholder="Ex: Amoxicilline 500mg"
-                  className="w-full bg-[#F3F4F6] border border-transparent rounded-2xl py-4 px-6 text-[15px] outline-none focus:bg-white focus:border-[#0055FF]/20 transition-all"
-                />
+              <div className="flex flex-col gap-2 relative">
+                <div className="flex justify-between items-end">
+                  <label className="text-[13px] font-bold text-[#14152A] ml-1">MÉDICAMENT</label>
+                  <button 
+                    onClick={() => setShowAddMedModal(true)}
+                    className="text-[#0055FF] text-[12px] font-bold hover:underline"
+                  >
+                    + Nouveau médicament en base
+                  </button>
+                </div>
+                
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={medSearchTerm}
+                    onChange={(e) => {
+                      setMedSearchTerm(e.target.value);
+                      setNewMedName(e.target.value);
+                      setIsMedDropdownOpen(true);
+                    }}
+                    onFocus={() => setIsMedDropdownOpen(true)}
+                    onBlur={() => {
+                      // Petit délai pour permettre le clic sur un élément de la liste
+                      setTimeout(() => setIsMedDropdownOpen(false), 200);
+                    }}
+                    placeholder="Rechercher ou sélectionner un médicament..."
+                    className="w-full bg-[#F3F4F6] border border-transparent rounded-2xl py-4 px-6 pr-12 text-[15px] outline-none focus:bg-white focus:border-[#0055FF]/20 transition-all"
+                  />
+                  <ChevronDown size={20} className={`absolute right-4 top-1/2 -translate-y-1/2 text-[#8B8D98] transition-transform pointer-events-none ${isMedDropdownOpen ? 'rotate-180' : ''}`} />
+                </div>
+
+                {/* Menu déroulant personnalisé */}
+                {isMedDropdownOpen && (
+                  <div className="absolute z-20 w-full top-[90px] bg-white border border-[#F0F2F5] rounded-2xl shadow-xl max-h-64 overflow-y-auto">
+                    {catalogMeds.filter(m => m.nom.toLowerCase().includes(medSearchTerm.toLowerCase())).length > 0 ? (
+                      catalogMeds
+                        .filter(m => m.nom.toLowerCase().includes(medSearchTerm.toLowerCase()))
+                        .map((m: any) => (
+                          <div 
+                            key={m.id}
+                            onClick={() => {
+                              setNewMedName(m.nom);
+                              setMedSearchTerm(m.nom);
+                              setIsMedDropdownOpen(false);
+                            }}
+                            className="px-6 py-3.5 hover:bg-[#F8FAFC] cursor-pointer border-b border-[#F0F2F5] last:border-b-0 transition-colors"
+                          >
+                            <span className="text-[14px] font-bold text-[#14152A]">{m.nom}</span>
+                            {m.forme && <span className="text-[#8B8D98] text-[12px] ml-2 italic">({m.forme})</span>}
+                          </div>
+                        ))
+                    ) : (
+                      <div className="px-6 py-6 text-center">
+                        <p className="text-[14px] text-[#8B8D98] font-medium mb-3">Aucun médicament trouvé</p>
+                        <button 
+                          onClick={() => {
+                            setIsMedDropdownOpen(false);
+                            setNewCatalogMed({...newCatalogMed, nom: medSearchTerm});
+                            setShowAddMedModal(true);
+                          }}
+                          className="text-[#0055FF] text-[13px] font-bold bg-[#F0F5FF] px-4 py-2 rounded-xl hover:bg-[#E0EBFF] transition-colors"
+                        >
+                          L'ajouter au catalogue ?
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -261,6 +354,56 @@ const PrescriptionForm: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* MODAL POUR AJOUTER UN NOUVEAU MÉDICAMENT AU CATALOGUE */}
+      {showAddMedModal && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-[32px] p-8 w-full max-w-md shadow-2xl">
+            <h3 className="text-[22px] font-bold text-[#14152A] mb-2">Ajouter un médicament</h3>
+            <p className="text-[#5A5C6B] text-[14px] mb-8">Ce médicament sera ajouté définitivement à la base de données et sera disponible pour tous les médecins.</p>
+            
+            <div className="space-y-4 mb-8">
+              <div>
+                <label className="block text-[12px] font-bold text-[#14152A] mb-2 uppercase">Nom complet</label>
+                <input 
+                  type="text" 
+                  value={newCatalogMed.nom}
+                  onChange={e => setNewCatalogMed({...newCatalogMed, nom: e.target.value})}
+                  className="w-full bg-[#F8FAFC] border border-[#F0F2F5] rounded-xl px-4 py-3 text-[14px] outline-none focus:border-[#0055FF]/40"
+                  placeholder="Ex: Doliprane 1000mg"
+                />
+              </div>
+              <div>
+                <label className="block text-[12px] font-bold text-[#14152A] mb-2 uppercase">Forme (Optionnel)</label>
+                <input 
+                  type="text" 
+                  value={newCatalogMed.forme}
+                  onChange={e => setNewCatalogMed({...newCatalogMed, forme: e.target.value})}
+                  className="w-full bg-[#F8FAFC] border border-[#F0F2F5] rounded-xl px-4 py-3 text-[14px] outline-none focus:border-[#0055FF]/40"
+                  placeholder="Ex: Comprimé, Sirop..."
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <button 
+                onClick={() => setShowAddMedModal(false)}
+                className="flex-1 py-3.5 rounded-xl font-bold text-[#5A5C6B] bg-[#F8FAFC] hover:bg-[#F0F2F5] transition-colors"
+              >
+                Annuler
+              </button>
+              <button 
+                onClick={handleCreateCatalogMed}
+                disabled={!newCatalogMed.nom}
+                className="flex-1 py-3.5 rounded-xl font-bold text-white bg-[#0055FF] hover:bg-[#0047D6] transition-colors disabled:opacity-50"
+              >
+                Ajouter
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </MedecinLayout>
   );
 };

@@ -146,7 +146,7 @@ const MedecinDashboard: React.FC = () => {
 
                   {appt.action && (
                     <button 
-                      onClick={() => navigate('/medecin/prescription')}
+                      onClick={() => navigate('/medecin/ordonnances')}
                       className={`px-6 py-3 rounded-2xl font-bold text-[14px] transition-all ${appt.status === 'EN COURS' ? 'bg-[#0055FF] text-white hover:bg-[#0047D6]' : 'bg-white border border-[#0055FF] text-[#0055FF] hover:bg-[#F0F5FF]'}`}
                     >
                       {appt.action}
