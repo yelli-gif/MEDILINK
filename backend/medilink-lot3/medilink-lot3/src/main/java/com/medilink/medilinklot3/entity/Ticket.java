@@ -17,6 +17,9 @@ public class Ticket {
     @Column(name = "rendez_vous_id", nullable = false)
     private Long rendezVousId;
 
+    @Column(name = "service_id")
+    private Long serviceId;
+
     @ManyToOne(optional = false)
     @JoinColumn(name = "file_attente_id")
     private FileAttente fileAttente;
@@ -49,6 +52,14 @@ public class Ticket {
 
     public void setRendezVousId(Long rendezVousId) {
         this.rendezVousId = rendezVousId;
+    }
+
+    public Long getServiceId() {
+        return serviceId;
+    }
+
+    public void setServiceId(Long serviceId) {
+        this.serviceId = serviceId;
     }
 
     public FileAttente getFileAttente() {

@@ -79,10 +79,11 @@ const PrescriptionForm: React.FC = () => {
       await consultationAPI.creerOrdonnance({
         patientId: parseInt(selectedPatientId),
         medecinId: parseInt(medecinId.toString()),
+        serviceId: user?.serviceId ? parseInt(user.serviceId.toString()) : null,
         dateDebutTraitement: new Date().toISOString().replace('Z', ''),
         contenu: medications.map(m => `${m.medicamentName} (${m.quantite}, ${m.frequence}, ${m.duree}) - ${m.instructions}`).join(' | '),
         patientNom: patientNom,
-        medecinNom: user?.nom || "Dr. Medilink",
+        medecinNom: user?.medecinNom || user?.name || "Dr. Medilink",
         serviceNom: user?.serviceNom || "Service de consultation"
       });
 

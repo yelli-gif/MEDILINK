@@ -7,7 +7,7 @@ import {
   MapPin, 
   Sun, 
   HeartPulse,
-  X, AlertTriangle, Loader2
+  X, AlertTriangle, Loader2, Navigation
 } from 'lucide-react';
 import FloatingNav from '../Composants/FloatingNav';
 import TopNavBar from '../Composants/TopNavBar';
@@ -19,7 +19,7 @@ interface RendezVousData {
   heure: string;
   medecinId: number;
   service: { id: number; nom: string } | null;
-  hopital: { id: number; nom: string; adresse: string } | null;
+  hopital: { id: number; nom: string; adresse: string; latitude?: number; longitude?: number } | null;
   patient: { id: number; nom: string; prenom: string } | null;
 }
 
@@ -27,10 +27,8 @@ const PatientDashboard: React.FC = () => {
   const userString = localStorage.getItem('medilink_user');
   const userProfile = userString ? JSON.parse(userString) : { name: 'Patient', isNew: true };
 
-  const [showMapModal, setShowMapModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
-  const [mapLoading, setMapLoading] = useState(false);
 
   // Données réelles depuis l'API
   const [rendezVousList, setRendezVousList] = useState<RendezVousData[]>([]);
@@ -43,21 +41,29 @@ const PatientDashboard: React.FC = () => {
     const fetchRendezVous = async () => {
       try {
         setLoading(true);
-        // Récupérer l'ID du patient depuis le localStorage
         const patientId = userProfile.patientId;
 
         if (patientId) {
           const rdvList = await rendezVousAPI.parPatient(patientId);
-          setRendezVousList(rdvList || []);
+          // Trier par date et heure
+          const sorted = (rdvList || []).sort((a: any, b: any) => {
+            const dateA = new Date(`${a.date || '1970-01-01'}T${a.heure || '00:00'}`);
+            const dateB = new Date(`${b.date || '1970-01-01'}T${b.heure || '00:00'}`);
+            return dateA.getTime() - dateB.getTime();
+          });
+          setRendezVousList(sorted);
 
-          // Le prochain RDV est le premier de la liste (triée par date)
-          if (rdvList && rdvList.length > 0) {
-            // Trier par date pour trouver le plus proche dans le futur
-            const today = new Date().toISOString().split('T')[0];
-            const futureRdv = rdvList.filter((r: RendezVousData) => r.date >= today);
-            if (futureRdv.length > 0) {
-              setNextAppointment(futureRdv[0]);
-            }
+          // Le prochain RDV est le premier de la liste dans le futur
+          const now = new Date();
+          const futureRdv = sorted.filter((r: RendezVousData) => {
+            const rdvDate = new Date(`${r.date}T${r.heure}`);
+            return rdvDate >= now;
+          });
+          
+          if (futureRdv.length > 0) {
+            setNextAppointment(futureRdv[0]);
+          } else if (sorted.length > 0) {
+            setNextAppointment(sorted[0]);
           }
         }
       } catch (err: any) {
@@ -69,6 +75,15 @@ const PatientDashboard: React.FC = () => {
     };
 
     fetchRendezVous();
+    
+    // Récupérer la position actuelle au chargement
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({ lat: position.coords.latitude, lng: position.coords.longitude });
+        }
+      );
+    }
   }, []);
 
   const handleAnnulerRdv = async () => {
@@ -83,18 +98,20 @@ const PatientDashboard: React.FC = () => {
     }
   };
 
-  const handleOpenMap = () => {
-    setShowMapModal(true);
-    if (!userLocation && "geolocation" in navigator) {
-      setMapLoading(true);
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setUserLocation({ lat: position.coords.latitude, lng: position.coords.longitude });
-          setMapLoading(false);
-        },
-        () => { setMapLoading(false); }
-      );
+  const handleItinerary = () => {
+    if (!nextAppointment?.hopital) return;
+    
+    const destLat = nextAppointment.hopital.latitude;
+    const destLng = nextAppointment.hopital.longitude;
+    const destAddr = encodeURIComponent(nextAppointment.hopital.adresse);
+    
+    let url = "";
+    if (userLocation) {
+      url = `https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${destLat},${destLng}&travelmode=driving`;
+    } else {
+      url = `https://www.google.com/maps/search/?api=1&query=${destAddr}`;
     }
+    window.open(url, '_blank');
   };
 
   return (
@@ -177,13 +194,44 @@ const PatientDashboard: React.FC = () => {
                  </div>
                  <div className="flex gap-4">
                    <button onClick={() => setShowEditModal(true)} className="flex-1 border border-slate-200 font-bold py-4 rounded-2xl hover:bg-slate-50 transition-colors">Annuler</button>
-                   <button onClick={handleOpenMap} className="flex-1 bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-500/20">Itinéraire</button>
+                   <button onClick={handleItinerary} className="flex-1 bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2">
+                     <Navigation size={18} /> Itinéraire
+                   </button>
                  </div>
               </div>
             )}
           </div>
 
           <div className="space-y-8">
+             <div className="bg-white rounded-[40px] p-8 border border-slate-100 shadow-sm">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-bold">Tous mes rendez-vous</h3>
+                  <button onClick={() => window.location.href='/rdv'} className="text-blue-600 text-sm font-bold hover:underline">Nouveau +</button>
+                </div>
+                <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
+                   {rendezVousList.length === 0 ? (
+                     <p className="text-slate-400 text-center py-4 italic">Aucun rendez-vous enregistré.</p>
+                   ) : (
+                     rendezVousList.map((rdv) => (
+                       <div key={rdv.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-transparent hover:border-blue-100 hover:bg-blue-50 transition-all">
+                         <div className="flex items-center gap-4">
+                           <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-blue-600 shadow-sm">
+                             <Calendar size={18} />
+                           </div>
+                           <div>
+                             <p className="font-bold text-slate-800 text-sm">{rdv.service?.nom || 'Consultation'}</p>
+                             <p className="text-[11px] text-slate-500">{rdv.date} à {rdv.heure}</p>
+                           </div>
+                         </div>
+                         <div className="text-right">
+                           <p className="text-[10px] font-bold text-blue-600 uppercase bg-blue-50 px-2 py-1 rounded-md">{rdv.hopital?.nom || 'Hôpital'}</p>
+                         </div>
+                       </div>
+                     ))
+                   )}
+                 </div>
+              </div>
+
              <div className="bg-white rounded-[40px] p-8 border border-slate-100 shadow-sm">
                 <h3 className="text-xl font-bold mb-6">Profil Morphologique</h3>
                 <div className="grid grid-cols-2 gap-6">

@@ -23,21 +23,26 @@ const MedecinDashboard: React.FC = () => {
       try {
         const userStr = localStorage.getItem('medilink_user');
         const user = userStr ? JSON.parse(userStr) : null;
-        if (user?.medecinId) {
-          const rdvs = await rendezVousAPI.parMedecin(user.medecinId);
-          if (rdvs && rdvs.length > 0) {
-            const mapped = rdvs.map((r: any, idx: number) => ({
-              time: r.heure || '--:--',
-              status: idx === 0 ? 'EN COURS' : idx === 1 ? 'PROCHAIN' : 'ATTENTE',
-              patient: r.patient ? `${r.patient.prenom} ${r.patient.nom}` : 'Patient',
-              detail: r.service?.nom || 'Consultation',
-              type: idx === 1 ? 'NOUVEAU' : idx === 0 ? 'ANCIEN PATIENT' : '',
-              id: r.id ? `#${r.id}` : '',
-              action: idx === 0 ? 'Continuer' : idx === 1 ? 'Démarrer la consultation' : '',
-            }));
-            setAppointments(mapped);
-            setRdvCount(rdvs.length);
-          }
+        
+        let rdvs = [];
+        if (user?.serviceId) {
+          rdvs = await rendezVousAPI.parService(user.serviceId);
+        } else if (user?.medecinId) {
+          rdvs = await rendezVousAPI.parMedecin(user.medecinId);
+        }
+
+        if (rdvs && rdvs.length > 0) {
+          const mapped = rdvs.map((r: any, idx: number) => ({
+            time: r.heure || '--:--',
+            status: idx === 0 ? 'EN COURS' : idx === 1 ? 'PROCHAIN' : 'ATTENTE',
+            patient: r.patient ? `${r.patient.prenom} ${r.patient.nom}` : 'Patient',
+            detail: r.service?.nom || 'Consultation',
+            type: idx === 1 ? 'NOUVEAU' : idx === 0 ? 'ANCIEN PATIENT' : '',
+            id: r.id ? `#${r.id}` : '',
+            action: idx === 0 ? 'Continuer' : idx === 1 ? 'Démarrer la consultation' : '',
+          }));
+          setAppointments(mapped);
+          setRdvCount(rdvs.length);
         }
       } catch (err) {
         console.error('Erreur chargement RDV médecin:', err);

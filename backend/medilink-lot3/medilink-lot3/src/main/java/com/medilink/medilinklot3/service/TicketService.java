@@ -15,7 +15,7 @@ public class TicketService {
 
     private final TicketRepository ticketRepository;
     private final FileAttenteRepository fileAttenteRepository;
-    private final Lot2Client lot2Client; // Ajouté
+    private final Lot2Client lot2Client;
 
     public TicketService(TicketRepository ticketRepository,
             FileAttenteRepository fileAttenteRepository,
@@ -31,10 +31,6 @@ public class TicketService {
         if (rdv == null) {
             throw new RuntimeException("Rendez-vous invalide ou introuvable : " + rendezVousId);
         }
-        // Optionnel : Vérifier si le serviceId correspond
-        // Long rdvServiceId = ((Number)
-        // ((Map)rdv.get("service")).get("id")).longValue();
-        // if (!rdvServiceId.equals(serviceId)) ...
 
         FileAttente file = fileAttenteRepository
                 .findByDateAndServiceId(LocalDate.now(), serviceId)
@@ -51,6 +47,7 @@ public class TicketService {
         ticket.setIdTicket(UUID.randomUUID().toString());
         ticket.setNumeroFile(file.getNumeroSuivant());
         ticket.setRendezVousId(rendezVousId);
+        ticket.setServiceId(serviceId); // ← serviceId persisté sur le ticket
         ticket.setFileAttente(file);
         ticket.setStatut(StatutTicket.EN_ATTENTE);
 

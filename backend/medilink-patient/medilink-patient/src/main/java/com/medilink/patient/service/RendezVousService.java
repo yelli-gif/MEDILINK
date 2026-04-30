@@ -140,6 +140,28 @@ public class RendezVousService {
     }
 
     /**
+     * Obtient tous les rendez-vous d'un service
+     */
+    @Transactional(readOnly = true)
+    public List<RendezVousResponseDTO> obtenirRendezVousService(Long serviceId) {
+        List<RendezVous> rendezVousList = rendezVousRepository.findByServiceId(serviceId);
+
+        return rendezVousList.stream()
+                .map(this::toFullResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Met à jour le statut d'un rendez-vous
+     */
+    public RendezVousResponseDTO updateStatut(Long id, String statut) {
+        RendezVous rendezVous = rendezVousRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Rendez-vous non trouvé avec l'ID : " + id));
+        rendezVous.setStatut(statut);
+        return toFullResponseDTO(rendezVousRepository.save(rendezVous));
+    }
+
+    /**
      * Annule un rendez-vous (annulerRDV dans l'UML)
      */
     public void annulerRendezVous(Long id) {
@@ -179,6 +201,9 @@ public class RendezVousService {
                      dto.setHopital(RendezVousResponseDTO.HopitalInfoDTO.builder()
                             .id(((Number) hopitalData.get("id")).longValue())
                             .nom((String) hopitalData.get("nom"))
+                            .adresse((String) hopitalData.get("adresse"))
+                            .latitude(hopitalData.get("latitude") != null ? ((Number) hopitalData.get("latitude")).doubleValue() : null)
+                            .longitude(hopitalData.get("longitude") != null ? ((Number) hopitalData.get("longitude")).doubleValue() : null)
                             .build());
                 }
             }

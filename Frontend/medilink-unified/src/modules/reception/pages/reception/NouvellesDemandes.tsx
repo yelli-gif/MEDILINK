@@ -138,9 +138,9 @@ export default function NewRequests() {
       
       const today = new Date().toISOString().split('T')[0]
       const mapped: Request[] = data
-        .filter((rdv: any) => rdv.date === today)
+        .filter((rdv: any) => rdv.date === today && (!rdv.statut || rdv.statut === 'EN_ATTENTE'))
         .map((rdv: any) => ({
-          id: rdv.id.toString(),
+          id: rdv.id ? rdv.id.toString() : Math.random().toString(),
           patientName: rdv.patient ? `${rdv.patient.prenom} ${rdv.patient.nom}` : 'Patient Inconnu',
           urgency: rdv.description?.toLowerCase().includes('urgent') || rdv.priorite === 'HAUTE' ? 'urgent' : 'normal',
           serviceId: rdv.service?.id || 0,
@@ -161,16 +161,44 @@ export default function NewRequests() {
     setIsValidating(request.id)
     try {
       const ticket = await accueilAPI.arriveePatient(request.rendezVousId, request.serviceId)
+
+      const serviceNom = ticket.serviceNom || request.serviceName || 'Service inconnu'
+      const hopitalNom = ticket.hopitalNom || 'Hôpital inconnu'
+      const now = new Date()
+      const timeStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+      const dateStr = now.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+
       const newTicket = {
         ...ticket,
         patientName: request.patientName,
-        serviceName: request.serviceName,
-        time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
-      };
+        serviceName: serviceNom,
+        hopitalNom,
+        time: timeStr
+      }
       setLastTicket(newTicket)
       setShowModal(true)
-      
       setRequests(prev => prev.filter(r => r.id !== request.id))
+
+      // ── Écriture de la notification dans le localStorage patient ──
+      const notification = {
+        id: `ticket-${ticket.idTicket || Date.now()}`,
+        title: 'TICKET GÉNÉRÉ',
+        doctor: `Ticket #${ticket.numeroFile ?? '?'} — Salle d\'attente`,
+        speciality: serviceNom,
+        date: dateStr,
+        time: timeStr,
+        location: hopitalNom,
+        timeAgo: 'À l\'instant',
+        serviceNom,
+        hopitalNom,
+        ticketNum: ticket.numeroFile,
+        patientId: ticket.patientId ?? null
+      }
+      try {
+        const existing = JSON.parse(localStorage.getItem('medilink_notifications') || '[]')
+        localStorage.setItem('medilink_notifications', JSON.stringify([notification, ...existing]))
+      } catch (_) {}
+
     } catch (err) {
       console.error('Erreur validation:', err)
       alert('Erreur lors de la validation du patient.')

@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/consultation")
 public class ConsultationController {
@@ -44,6 +46,11 @@ public class ConsultationController {
         // Cette méthode doit appeler ton service pour récupérer l'objet
         Ordonnance ordonnance = consultationService.getOrdonnanceById(id);
         return ResponseEntity.ok(ordonnance);
+    }
+
+    @GetMapping("/patient/{patientId}")
+    public ResponseEntity<List<Ordonnance>> getOrdonnancesByPatient(@PathVariable Long patientId) {
+        return ResponseEntity.ok(consultationService.getOrdonnancesByPatientId(patientId));
     }
 
     @DeleteMapping("/ligne/{id}")

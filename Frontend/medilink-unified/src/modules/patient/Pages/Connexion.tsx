@@ -68,9 +68,11 @@ const Connexion: React.FC<ConnexionProps> = ({ mode = 'login' }) => {
       // Ajouter les IDs métier si présents dans le token
       if (decoded.hopitalId) userData.hopitalId = decoded.hopitalId;
       if (decoded.medecinId) userData.medecinId = decoded.medecinId;
+      if (decoded.medecinNom) userData.medecinNom = decoded.medecinNom;
       if (decoded.personnelId) userData.personnelId = decoded.personnelId;
       if (decoded.pharmacieId) userData.pharmacieId = decoded.pharmacieId;
       if (decoded.serviceId) userData.serviceId = decoded.serviceId;
+      if (decoded.serviceNom) userData.serviceNom = decoded.serviceNom;
 
       // ==========================================
       // CORRECTION: Récupération du VRAI patientId

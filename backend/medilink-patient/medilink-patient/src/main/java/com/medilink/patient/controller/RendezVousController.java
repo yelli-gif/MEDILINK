@@ -76,6 +76,26 @@ public class RendezVousController {
     }
 
     /**
+     * GET /api/rendez-vous/service/{serviceId} - Obtenir les rendez-vous d'un service
+     */
+    @GetMapping("/service/{serviceId}")
+    @Operation(summary = "Rendez-vous d'un service", description = "Liste tous les rendez-vous d'un service")
+    public ResponseEntity<List<RendezVousResponseDTO>> obtenirRendezVousService(@PathVariable Long serviceId) {
+        List<RendezVousResponseDTO> response = rendezVousService.obtenirRendezVousService(serviceId);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * PATCH /api/rendez-vous/{id}/status - Mettre à jour le statut d'un rendez-vous
+     */
+    @PatchMapping("/{id}/status")
+    @Operation(summary = "Mettre à jour le statut", description = "Met à jour le statut d'un rendez-vous (ex: ARRIVE)")
+    public ResponseEntity<RendezVousResponseDTO> updateStatut(@PathVariable Long id, @RequestParam String statut) {
+        RendezVousResponseDTO response = rendezVousService.updateStatut(id, statut);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
      * DELETE /api/rendez-vous/{id} - Annuler un rendez-vous (annulerRDV dans l'UML)
      */
     @DeleteMapping("/{id}")

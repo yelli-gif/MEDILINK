@@ -236,6 +236,14 @@ export const rendezVousAPI = {
   parHopital: (hopitalId: number) =>
     apiFetch<any[]>(`${API.LOT2}/api/rendez-vous/hopital/${hopitalId}`),
 
+  parService: (serviceId: number) =>
+    apiFetch<any[]>(`${API.LOT2}/api/rendez-vous/service/${serviceId}`),
+
+  updateStatus: (id: number, statut: string) =>
+    apiFetch<any>(`${API.LOT2}/api/rendez-vous/${id}/status?statut=${statut}`, {
+      method: 'PATCH',
+    }),
+
   annuler: (id: number) =>
     apiFetch<void>(`${API.LOT2}/api/rendez-vous/${id}`, { method: 'DELETE' }),
 };
@@ -265,6 +273,9 @@ export const consultationAPI = {
 
   getOrdonnance: (id: number) =>
     apiFetch<any>(`${API.LOT4}/api/consultation/ordonnance/${id}`),
+
+  parPatient: (patientId: number) =>
+    apiFetch<any[]>(`${API.LOT4}/api/consultation/patient/${patientId}`),
 
   ajouterLigne: (ordonnanceId: number, data: any) =>
     apiFetch<any>(`${API.LOT4}/api/consultation/ordonnance/${ordonnanceId}/ligne`, {

@@ -44,11 +44,13 @@ public class AuthController {
             try {
                 if ("MEDECIN".equals(roleStr)) {
                     List<Map<String, Object>> res = jdbcTemplate.queryForList(
-                        "SELECT m.id, m.service_id, s.hopital_id FROM medecin m " +
+                        "SELECT m.id, m.nom, m.prenom, m.service_id, s.nom as service_nom, s.hopital_id FROM medecin m " +
                         "LEFT JOIN service s ON m.service_id = s.id WHERE m.id = ?", user.getId());
                     if (!res.isEmpty()) {
                         claims.put("medecinId", res.get(0).get("id"));
+                        claims.put("medecinNom", "Dr. " + res.get(0).get("prenom") + " " + res.get(0).get("nom"));
                         claims.put("serviceId", res.get(0).get("service_id"));
+                        claims.put("serviceNom", res.get(0).get("service_nom"));
                         claims.put("hopitalId", res.get(0).get("hopital_id"));
                     }
                 } else if ("ACCUEIL".equals(roleStr)) {

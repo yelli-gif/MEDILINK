@@ -122,4 +122,7 @@ public class ConsultationService {
         ligneOrdonnanceRepository.delete(ligne);
     }
 
+    public List<Ordonnance> getOrdonnancesByPatientId(Long patientId) {
+        return ordonnanceRepository.findByPatientId(patientId);
+    }
 }

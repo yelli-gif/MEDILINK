@@ -28,15 +28,56 @@ const Notifications: React.FC = () => {
     if (treatmentsStr === '[]') isEmpty = true;
   } catch(e) {}
 
+  // ── Polling localStorage + backend pour les notifications ──
   useEffect(() => {
-    const updateNotifs = () => {
-      const notifsStr = localStorage.getItem('medilink_notifications');
-      if (notifsStr) {
-         try { setDynamicNotifs(JSON.parse(notifsStr)); } catch(e){}
+    const patientId = userProfile?.patientId || userProfile?.id || null;
+
+    const loadNotifs = async () => {
+      // 1. Lire les notifications locales (écrites par la réception sur le même navigateur)
+      let localNotifs: any[] = [];
+      try {
+        const notifsStr = localStorage.getItem('medilink_notifications');
+        if (notifsStr) localNotifs = JSON.parse(notifsStr);
+      } catch(e) {}
+
+      // 2. Polling backend : récupérer les RDV du patient pour afficher les confirmations
+      let backendNotifs: any[] = [];
+      if (patientId) {
+        try {
+          const { rendezVousAPI } = await import('../../../services/api');
+          const rdvList = await rendezVousAPI.parPatient(Number(patientId));
+          if (Array.isArray(rdvList)) {
+            backendNotifs = rdvList.map((rdv: any) => ({
+              id: `rdv-${rdv.id}`,
+              title: 'RENDEZ-VOUS CONFIRMÉ',
+              doctor: rdv.medecinNom ? `Dr. ${rdv.medecinNom}` : 'Médecin assigné',
+              speciality: rdv.service?.nom || rdv.serviceNom || 'Service médical',
+              date: rdv.date ? new Date(rdv.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '--',
+              time: rdv.heure ? rdv.heure.substring(0, 5) : '--:--',
+              location: rdv.hopital?.nom || rdv.hopitalNom || 'Hôpital',
+              timeAgo: 'Récent',
+              serviceNom: rdv.service?.nom || rdv.serviceNom || '',
+              hopitalNom: rdv.hopital?.nom || rdv.hopitalNom || '',
+            }));
+          }
+        } catch(e) {
+          // Lot 2 inaccessible, on garde seulement les notifs locales
+        }
       }
+
+      // 3. Fusionner : les notifs locales en premier (plus récentes), dédupliquer par id
+      const seen = new Set<string>();
+      const merged = [...localNotifs, ...backendNotifs].filter(n => {
+        if (seen.has(n.id)) return false;
+        seen.add(n.id);
+        return true;
+      });
+
+      setDynamicNotifs(merged);
     };
-    updateNotifs();
-    const interval = setInterval(updateNotifs, 1000);
+
+    loadNotifs();
+    const interval = setInterval(loadNotifs, 3000);
     return () => clearInterval(interval);
   }, []);
 
@@ -119,54 +160,57 @@ const Notifications: React.FC = () => {
 
             <div className="space-y-4">
               
-              {dynamicNotifs.map((notif: any, idx: number) => (
-                <div key={notif.id || idx} className="bg-white rounded-[24px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.03)] border border-[#0055FF]/30 flex flex-col md:flex-row md:items-center relative animate-in fade-in slide-in-from-top-4">
-                   <div className="flex-1 pr-6">
-                      <div className="flex justify-between items-start mb-3">
-                         <span className="text-[#0055FF] text-[11px] font-bold uppercase tracking-wider">
-                           {notif.title}
-                         </span>
-                         <span className="text-[#5A5C6B] text-[13px]">{notif.timeAgo}</span>
-                      </div>
-                      <h3 className="text-[22px] font-bold text-[#14152A] mb-1">{notif.doctor}</h3>
-                      <p className="text-[#5A5C6B] text-[15px] mb-5">{notif.speciality}</p>
-                      
-                      <div className="flex items-center gap-6">
-                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-[#F4F7FF] rounded-[12px] flex items-center justify-center text-[#0055FF]">
-                               <Calendar size={18} />
-                            </div>
-                            <div>
-                               <span className="block text-[#8B8D98] text-[10px] font-bold uppercase tracking-wider mb-0.5">DATE</span>
-                               <span className="text-[#14152A] font-bold text-[14px]">{notif.date}</span>
-                            </div>
-                         </div>
-                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-[#F4F7FF] rounded-[12px] flex items-center justify-center text-[#0055FF]">
-                               <Clock size={18} />
-                            </div>
-                            <div>
-                               <span className="block text-[#8B8D98] text-[10px] font-bold uppercase tracking-wider mb-0.5">HEURE</span>
-                               <span className="text-[#14152A] font-bold text-[14px]">{notif.time}</span>
-                            </div>
-                         </div>
-                      </div>
-                   </div>
+              {dynamicNotifs.map((notif: any, idx: number) => {
+                const isTicket = notif.ticketNum != null;
+                return (
+                  <div key={notif.id || idx} className={`bg-white rounded-[24px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.03)] border ${isTicket ? "border-green-300" : "border-[#0055FF]/30"} flex flex-col md:flex-row md:items-center relative animate-in fade-in slide-in-from-top-4`}>
+                     <div className="flex-1 pr-6">
+                        <div className="flex justify-between items-start mb-3">
+                           <span className={`text-[11px] font-bold uppercase tracking-wider ${isTicket ? "text-green-600" : "text-[#0055FF]"}`}>
+                             {notif.title}
+                           </span>
+                           <span className="text-[#5A5C6B] text-[13px]">{notif.timeAgo}</span>
+                        </div>
+                        <h3 className="text-[22px] font-bold text-[#14152A] mb-1">{notif.doctor}</h3>
+                        <p className="text-[#5A5C6B] text-[15px] mb-5">{notif.serviceNom || notif.speciality}</p>
+                        <div className="flex items-center gap-6">
+                           <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 bg-[#F4F7FF] rounded-[12px] flex items-center justify-center text-[#0055FF]">
+                                 <Calendar size={18} />
+                              </div>
+                              <div>
+                                 <span className="block text-[#8B8D98] text-[10px] font-bold uppercase tracking-wider mb-0.5">DATE</span>
+                                 <span className="text-[#14152A] font-bold text-[14px]">{notif.date}</span>
+                              </div>
+                           </div>
+                           <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 bg-[#F4F7FF] rounded-[12px] flex items-center justify-center text-[#0055FF]">
+                                 <Clock size={18} />
+                              </div>
+                              <div>
+                                 <span className="block text-[#8B8D98] text-[10px] font-bold uppercase tracking-wider mb-0.5">HEURE</span>
+                                 <span className="text-[#14152A] font-bold text-[14px]">{notif.time}</span>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                     <div className="hidden md:block w-px h-24 border-l border-dashed border-[#E8ECF5] mx-4 relative">
+                        <div className="absolute -top-1.5 -left-[5px] w-3 h-3 bg-[#F8FAFC] rounded-full border border-[#E8ECF5]"></div>
+                        <div className="absolute -bottom-1.5 -left-[5px] w-3 h-3 bg-[#F8FAFC] rounded-full border border-[#E8ECF5]"></div>
+                     </div>
+                     <div className="md:w-[150px] flex flex-col items-center justify-center pt-6 md:pt-0 mt-6 md:mt-0 border-t md:border-t-0 border-[#F0F2F5]">
+                        <span className="text-[#8B8D98] text-[10px] font-bold uppercase tracking-wider mb-2">Lieu</span>
+                        <span className="text-[#14152A] font-bold text-[13px] text-center mb-3">{notif.hopitalNom || notif.location}</span>
+                        {notif.ticketNum != null ? (
+                          <span className="text-green-600 text-[11px] font-bold tracking-wider">Ticket #{notif.ticketNum}</span>
+                        ) : (
+                          <span className="text-[#8B8D98] text-[10px] font-bold tracking-wider">RDV confirmé</span>
+                        )}
+                     </div>
+                  </div>
+                );
+              })}
 
-                   {/* Separator Line */}
-                   <div className="hidden md:block w-px h-24 border-l border-dashed border-[#E8ECF5] mx-4 relative">
-                      <div className="absolute -top-1.5 -left-[5px] w-3 h-3 bg-[#F8FAFC] rounded-full border border-[#E8ECF5]"></div>
-                      <div className="absolute -bottom-1.5 -left-[5px] w-3 h-3 bg-[#F8FAFC] rounded-full border border-[#E8ECF5]"></div>
-                   </div>
-                   
-                   {/* Right side inside Notification */}
-                   <div className="md:w-[150px] flex flex-col items-center justify-center pt-6 md:pt-0 mt-6 md:mt-0 border-t md:border-t-0 border-[#F0F2F5]">
-                      <span className="text-[#8B8D98] text-[10px] font-bold uppercase tracking-wider mb-2">Lieu</span>
-                      <span className="text-[#14152A] font-bold text-[13px] text-center mb-3">{notif.location}</span>
-                      <span className="text-[#8B8D98] text-[10px] font-bold tracking-wider">Ref: ML-{Math.floor(Math.random()*800+100)}-XX</span>
-                   </div>
-                </div>
-              ))}
 
               {isEmpty ? (
                 <div className="bg-[#F4F7FF] rounded-[24px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.03)] border border-[#0055FF]/20 flex items-start flex-col sm:flex-row relative animate-in fade-in slide-in-from-top-4 mt-6">

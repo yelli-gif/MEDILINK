@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import FloatingNav from '../Composants/FloatingNav';
 import TopNavBar from '../Composants/TopNavBar';
+import { consultationAPI } from '../../../services/api';
 
 const getInitialDoses = () => {
   try {
@@ -83,36 +84,58 @@ const Ordonnances: React.FC = () => {
   };
 
   const [treatmentId, setTreatmentId] = useState(getTreatmentId());
-  const [doses, setDoses] = useState(() => {
-    const initial = getInitialDoses();
-    try {
-      const stateStr = localStorage.getItem('medilink_ordonnances_state') || '{}';
-      const stateObj = JSON.parse(stateStr);
-      return initial.map(d => {
-        const saved = stateObj[`${getTreatmentId()}_${d.id}`];
-        if (saved) return { ...d, taken: saved.taken, takenAt: saved.takenAt };
-        return d;
-      });
-    } catch (e) {}
-    return initial;
-  });
+  const [doses, setDoses] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const handleHashChange = () => {
-      const currentId = getTreatmentId();
-      setTreatmentId(currentId);
-      const initial = getInitialDoses();
+    const loadPrescriptions = async () => {
       try {
-        const stateStr = localStorage.getItem('medilink_ordonnances_state') || '{}';
-        const stateObj = JSON.parse(stateStr);
-        setDoses(initial.map(d => {
-          const saved = stateObj[`${currentId}_${d.id}`];
-          if (saved) return { ...d, taken: saved.taken, takenAt: saved.takenAt };
-          return d;
-        }));
-      } catch (e) {
-        setDoses(initial);
+        const userStr = localStorage.getItem('medilink_user');
+        const user = userStr ? JSON.parse(userStr) : null;
+        
+        if (user?.patientId) {
+          const data = await consultationAPI.parPatient(user.patientId);
+          if (data && data.length > 0) {
+            // Transformer les ordonnances en "doses" pour l'UI existante
+            const allDoses: any[] = [];
+            data.forEach((ord: any) => {
+              // On peut splitter le contenu si c'est formaté avec des pipes
+              const medications = (ord.contenu || "").split(' | ');
+              medications.forEach((med: string, idx: number) => {
+                allDoses.push({
+                  id: `${ord.id}_${idx}`,
+                  name: med.split(' (')[0],
+                  dosage: med.includes('(') ? med.split('(')[1].split(',')[0] : '',
+                  time: '08:00', // Par défaut si non spécifié
+                  timeNum: 8 * 60,
+                  taken: false,
+                  icon: Pill,
+                  ordId: ord.id
+                });
+              });
+            });
+            setDoses(allDoses);
+          } else {
+             setDoses(getInitialDoses());
+          }
+        } else {
+          setDoses(getInitialDoses());
+        }
+      } catch (err) {
+        console.error("Erreur chargement ordonnances:", err);
+        setDoses(getInitialDoses());
+      } finally {
+        setLoading(false);
       }
+    };
+
+    loadPrescriptions();
+  }, []);
+
+  useEffect(() => {
+    // Garder la logique de changement de hash pour la demo
+    const handleHashChange = () => {
+      setTreatmentId(getTreatmentId());
     };
     window.addEventListener('popstate', handleHashChange);
     return () => window.removeEventListener('popstate', handleHashChange);
@@ -163,7 +186,14 @@ const Ordonnances: React.FC = () => {
       <TopNavBar />
       
       <main className="max-w-4xl mx-auto px-4 pt-8 pb-10">
-        {totalDoses === 0 ? (
+        {loading ? (
+          <div className="w-full flex justify-center py-20">
+            <div className="text-[#5A5C6B] font-medium flex items-center gap-3">
+               <div className="w-5 h-5 border-2 border-[#0055FF] border-t-transparent rounded-full animate-spin"></div>
+               Chargement de vos ordonnances...
+            </div>
+          </div>
+        ) : totalDoses === 0 ? (
           <div className="w-full flex justify-center py-20 opacity-60">
              <div className="flex flex-col items-center max-w-sm text-center">
                 <Pill size={64} className="text-[#8B8D98] mb-6" />
