@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
-import { hopitalAPI, authAPI } from '../../../services/api';
+import { hopitalAPI, authAPI, personnelAPI } from '../../../services/api';
 
 export default function HospitalCreation() {
   const navigate = useNavigate();
@@ -26,7 +26,8 @@ export default function HospitalCreation() {
   
   const [name, setName] = useState('');
   const [address, setAddress] = useState('');
-  const [overseer, setOverseer] = useState('');
+  const [prenomAdmin, setPrenomAdmin] = useState('');
+  const [nomAdmin, setNomAdmin] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [totalBeds, setTotalBeds] = useState('1240');
@@ -111,7 +112,7 @@ export default function HospitalCreation() {
 
     try {
       // 1. Créer le compte admin
-      await authAPI.register({
+      const savedUser = await authAPI.register({
         email,
         motDePasse: password,
         role: 'ADMIN',
@@ -125,7 +126,17 @@ export default function HospitalCreation() {
         longitude: parseFloat(selectedCoords.lon),
       });
 
-      // 3. Connexion automatique pour obtenir le token JWT
+      // 3. Lier l'admin à l'hôpital dans la table "admin"
+      if (savedUser && savedHopital && savedHopital.id) {
+         await personnelAPI.ajouterAdmin({
+            id: savedUser.id,
+            nom: nomAdmin.trim() || 'Admin',
+            prenom: prenomAdmin.trim() || 'Super',
+            hopital: { id: savedHopital.id }
+         });
+      }
+
+      // 4. Connexion automatique pour obtenir le token JWT
       try {
         const token = await authAPI.login(email, password);
         localStorage.setItem('medilink_token', token);
@@ -133,7 +144,7 @@ export default function HospitalCreation() {
         console.error('Erreur auto-login:', loginErr);
       }
 
-      // 4. Sauvegarder localement la config hôpital
+      // 5. Sauvegarder localement la config hôpital
       if (!savedHopital?.id) {
         throw new Error("Le backend n'a pas retourné l'ID de l'hôpital. Vérifiez la connexion au serveur.");
       }
@@ -141,7 +152,7 @@ export default function HospitalCreation() {
         id: savedHopital.id,
         name,
         address,
-        overseer,
+        overseer: `${prenomAdmin} ${nomAdmin}`,
         email,
         coords: selectedCoords,
         updatedAt: new Date().toISOString(),
@@ -322,15 +333,27 @@ export default function HospitalCreation() {
                </p>
 
                <div className="space-y-6">
-                 <div>
-                   <label className="block text-[13px] font-bold text-slate-700 mb-2 ml-1">Nom Complet de l'Administrateur</label>
-                   <input 
-                     type="text" 
-                     value={overseer} 
-                     onChange={e => setOverseer(e.target.value)} 
-                     placeholder="ex. Dr Helena Vance" 
-                     className="w-full bg-slate-50 border-0 rounded-2xl px-6 py-4 outline-none focus:ring-2 focus:ring-blue-500/10 text-slate-800 font-medium placeholder:text-slate-400" 
-                   />
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                   <div>
+                     <label className="block text-[13px] font-bold text-slate-700 mb-2 ml-1">Prénom de l'Administrateur</label>
+                     <input 
+                       type="text" 
+                       value={prenomAdmin} 
+                       onChange={e => setPrenomAdmin(e.target.value)} 
+                       placeholder="ex. Helena" 
+                       className="w-full bg-slate-50 border-0 rounded-2xl px-6 py-4 outline-none focus:ring-2 focus:ring-blue-500/10 text-slate-800 font-medium placeholder:text-slate-400" 
+                     />
+                   </div>
+                   <div>
+                     <label className="block text-[13px] font-bold text-slate-700 mb-2 ml-1">Nom de l'Administrateur</label>
+                     <input 
+                       type="text" 
+                       value={nomAdmin} 
+                       onChange={e => setNomAdmin(e.target.value)} 
+                       placeholder="ex. Vance" 
+                       className="w-full bg-slate-50 border-0 rounded-2xl px-6 py-4 outline-none focus:ring-2 focus:ring-blue-500/10 text-slate-800 font-medium placeholder:text-slate-400" 
+                     />
+                   </div>
                  </div>
 
                  {/* Champs techniques (indispensables pour le backend) */}

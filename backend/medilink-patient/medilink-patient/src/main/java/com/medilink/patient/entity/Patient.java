@@ -34,6 +34,9 @@ public class Patient {
     @Column(nullable = false, length = 100)
     private String prenom;
 
+    @Column(unique = true, length = 150)
+    private String email;
+
     @Column(name = "date_naissance")
     private LocalDate dateNaissance;
 

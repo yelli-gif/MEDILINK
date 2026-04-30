@@ -26,6 +26,9 @@ public class PatientDTO {
     @Size(max = 100, message = "Le prénom ne peut pas dépasser 100 caractères")
     private String prenom;
 
+    @Email(message = "L'email doit être valide")
+    private String email;
+
     @Past(message = "La date de naissance doit être dans le passé")
     private LocalDate dateNaissance;
 

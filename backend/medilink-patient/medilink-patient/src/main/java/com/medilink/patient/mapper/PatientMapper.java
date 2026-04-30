@@ -27,6 +27,7 @@ public class PatientMapper {
         Patient patient = new Patient();
         patient.setNom(dto.getNom());
         patient.setPrenom(dto.getPrenom());
+        patient.setEmail(dto.getEmail());
         patient.setDateNaissance(dto.getDateNaissance());
         patient.setGroupeSanguin(dto.getGroupeSanguin());
         patient.setPoids(dto.getPoids());
@@ -56,6 +57,7 @@ public class PatientMapper {
                 .id(patient.getId())
                 .nom(patient.getNom())
                 .prenom(patient.getPrenom())
+                .email(patient.getEmail())
                 .dateNaissance(patient.getDateNaissance())
                 .groupeSanguin(patient.getGroupeSanguin())
                 .poids(patient.getPoids())
@@ -81,6 +83,9 @@ public class PatientMapper {
         }
         if (dto.getPrenom() != null) {
             patient.setPrenom(dto.getPrenom());
+        }
+        if (dto.getEmail() != null) {
+            patient.setEmail(dto.getEmail());
         }
         if (dto.getDateNaissance() != null) {
             patient.setDateNaissance(dto.getDateNaissance());

@@ -21,6 +21,7 @@ public class PatientResponseDTO {
     private Long id;
     private String nom;
     private String prenom;
+    private String email;
     private LocalDate dateNaissance;
     private String groupeSanguin;
     private Integer poids;

@@ -12,7 +12,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -95,6 +97,14 @@ public class PatientService {
      */
     @Transactional(readOnly = true)
     public List<PatientResponseDTO> rechercherPatients(String critere) {
+        if (critere != null && critere.contains("@")) {
+            Optional<Patient> patient = patientRepository.findByEmail(critere);
+            if (patient.isPresent()) {
+                return Collections.singletonList(patientMapper.toResponseDTO(patient.get()));
+            }
+            return Collections.emptyList();
+        }
+
         List<Patient> patients = patientRepository.rechercherParNomOuPrenom(critere);
 
         return patients.stream()

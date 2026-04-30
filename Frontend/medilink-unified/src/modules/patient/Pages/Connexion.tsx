@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowLeft, User, Building2, ArrowRight, Mail, Lock, Eye, EyeOff, Loader2, Pill } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { authAPI } from '../../../services/api';
+import { authAPI, patientAPI } from '../../../services/api';
 
 interface ConnexionProps {
   mode?: 'login' | 'register';
@@ -58,6 +58,7 @@ const Connexion: React.FC<ConnexionProps> = ({ mode = 'login' }) => {
 
       // Stocker les infos utilisateur dynamiques
       const userData: any = {
+        id: decoded.id,
         name: userEmail.split('@')[0],
         email: userEmail,
         role: userRole,
@@ -70,6 +71,20 @@ const Connexion: React.FC<ConnexionProps> = ({ mode = 'login' }) => {
       if (decoded.personnelId) userData.personnelId = decoded.personnelId;
       if (decoded.pharmacieId) userData.pharmacieId = decoded.pharmacieId;
       if (decoded.serviceId) userData.serviceId = decoded.serviceId;
+
+      // ==========================================
+      // CORRECTION: Récupération du VRAI patientId
+      // ==========================================
+      if (userRole === 'PATIENT') {
+        try {
+          const patients = await patientAPI.rechercher(userEmail);
+          if (patients && patients.length > 0) {
+            userData.patientId = patients[0].id; // L'ID réel généré par la table patient (Lot 2)
+          }
+        } catch (e) {
+          console.warn("Impossible de récupérer l'ID du patient via le Lot 2", e);
+        }
+      }
 
       localStorage.setItem('medilink_user', JSON.stringify(userData));
 

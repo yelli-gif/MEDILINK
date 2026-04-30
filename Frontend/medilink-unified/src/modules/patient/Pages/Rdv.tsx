@@ -95,7 +95,7 @@ const Rdv: React.FC = () => {
             let hospitalServices: string[] = [];
             try {
               const res = await serviceAPI.listerParHopital(h.id);
-              hospitalServices = res.map((s: any) => s.nom);
+              hospitalServices = Array.from(new Set(res.map((s: any) => s.nom))) as string[];
             } catch (e) {
               console.warn(`Impossible de charger les services pour l'hôpital ${h.id}`);
             }

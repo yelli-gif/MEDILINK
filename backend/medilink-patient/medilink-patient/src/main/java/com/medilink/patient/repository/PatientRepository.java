@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Repository pour l'accès aux données des patients
@@ -23,4 +24,6 @@ public interface PatientRepository extends JpaRepository<Patient, Long> {
             "LOWER(p.nom) LIKE LOWER(CONCAT('%', :critere, '%')) OR " +
             "LOWER(p.prenom) LIKE LOWER(CONCAT('%', :critere, '%'))")
     List<Patient> rechercherParNomOuPrenom(@Param("critere") String critere);
+
+    Optional<Patient> findByEmail(String email);
 }

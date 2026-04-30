@@ -145,6 +145,12 @@ export const personnelAPI = {
       method: 'POST',
       body: JSON.stringify(data),
     }),
+
+  ajouterAdmin: (data: any) =>
+    apiFetch<any>(`${API.LOT1}/api/personnel/admin`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
 };
 
 // ================================================================

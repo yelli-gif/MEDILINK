@@ -38,6 +38,7 @@ public class AuthController {
 
             Map<String, Object> claims = new HashMap<>();
             String roleStr = user.getRole().name();
+            claims.put("id", user.getId()); // Indispensable pour que le frontend connaisse l'ID de l'utilisateur (ex: patientId)
 
             // Injection des IDs spécifiques selon le rôle
             try {
